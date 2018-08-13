@@ -1,7 +1,10 @@
 # My RetroPie Setup Guide
 
 This is my personal guide for setting up a current version of RetroPie.
+
 All the instructions below are meant to be run as the normal user `pi`.
+
+## Instructions
 
 1. Download the latest version of Raspbian Stretch Nano from <https://github.com/hhromic/pi-gen-nano/releases/latest>
 
