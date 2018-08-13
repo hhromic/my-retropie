@@ -20,5 +20,5 @@ All the instructions below are meant to be run as the normal user `pi`.
 
 6. Start the automated installation script:
 
-       bash <(curl -s https://git.io/fNFAV)
+       bash <(curl -sL https://git.io/fNFAV)
 
