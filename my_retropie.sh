@@ -143,7 +143,18 @@ for package in "${PACKAGES_SOURCE[@]}"; do
     install_package_from_source "$package" || exit 1
 done
 
-# set autostart to start Emulation Station at boot
+# get bluetooth depends
+echo "getting bluetooth depends ..."
+sudo ~/RetroPie-Setup/retropie_packages.sh bluetooth depends || exit 1
+
+# enable splashscreen
+echo "enabling splashscreen ..."
+sudo ~/RetroPie-Setup/retropie_packages.sh splashscreen default || exit 1
+sudo ~/RetroPie-Setup/retropie_packages.sh splashscreen enable || exit 1
+
+# enable autostart
+echo "enabling autostart ..."
+sudo ~/RetroPie-Setup/retropie_packages.sh autostart enable || exit 1
 
 #===============================================================================
 # Video modes and shaders setup
