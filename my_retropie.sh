@@ -2,8 +2,11 @@
 # Automated setup for my personal RetroPie installation.
 # script by github.com/hhromic
 
-################################################################################
+#===============================================================================
 # Configuration
+
+# device hostname
+HOSTNAME="retropie"
 
 # packages to be installed from binary
 PACKAGES_BINARY=(
@@ -20,13 +23,23 @@ PACKAGES_SOURCE=(
     "lr-mupen64plus"
     "lr-nestopia"
     "lr-pcsx-rearmed"
+    "lr-snes9x"
 )
+
+# video modes config file
+VIDEO_MODES_FILE=/opt/retropie/configs/all/videomodes.cfg
+
+# default video mode for emulators
+VIDEO_MODE="CEA-4"
+
+# emulators to set default video mode for
+VIDEO_MODE_EMULATORS=("${PACKAGES_SOURCE[@]}")
 
 # shaders preset directory
 SHADER_PRESETS_DIR=/opt/retropie/configs/all/retroarch/shaders/presets
 
-# LCD-based cores
-LCD_CORES=(
+# LCD-based libretro cores
+LCD_CORE_NAMES=(
     "mGBA"
 )
 
@@ -45,7 +58,7 @@ BORDERMULT = "3.000000"
 GBAGAMMA = "1.000000"
 EOF
 
-# CRT-based cores
+# CRT-based libretro cores
 CRT_CORE_NAMES=(
     "Genesis Plus GX"
     "Nestopia"
@@ -73,54 +86,107 @@ MASK_DARK = "0.250000"
 MASK_FADE = "0.800000"
 EOF
 
-################################################################################
+#===============================================================================
 # Functions
 
 function install_package_from_binary() {
-    return
+    local package="$1"
+    cd ~/RetroPie-Setup || return
+    for action in depends install_bin configure; do
+        sudo ./retropie_packages.sh "$package" "$action" || return
+    done
 }
 
 function install_package_from_source() {
-    return
+    local package="$1"
+    cd ~/RetroPie-Setup || return
+    sudo ./retropie_packages.sh "$package" clean || return
+    sudo ./retropie_packages.sh "$package"
 }
 
 function setup_shader_preset() {
-    return
+    local core_name="$1"
+    local preset="$2"
+    local base_dir="$SHADER_PRESETS_DIR"/"$core_name"
+    mkdir -p "$base_dir" || return
+    echo "$preset" > "$base_dir"/"$core_name".glslp
 }
 
-################################################################################
+#===============================================================================
 # RetroPie setup
 
-# clone the latest RetroPie-Setup repository
+# clone latest RetroPie-Setup repository
+echo "cloning latest Retropie-Setup repository ..."
 cd ~ || exit 1
 git clone https://github.com/RetroPie/RetroPie-Setup || exit 1
 
 # install packages from binary
+echo "installing packages from binary ..."
+for package in "${PACKAGES_BINARY[@]}"; do
+    echo "package: $package"
+    install_package_from_binary "$package" || exit 1
+done
 
 # install packages from source
+echo "installing packages from source ..."
+for package in "${PACKAGES_SOURCE[@]}"; do
+    echo "package: $package"
+    install_package_from_source "$package" || exit 1
+done
 
 # set autostart to start Emulation Station at boot
 
-################################################################################
+#===============================================================================
 # Video modes and shaders setup
 
-# set "CEA-4" (for 720p) as the default video mode for the installed cores
+# set default video mode for emulators
+echo "setting default video mode for emulators ..."
+:> "$VIDEO_MODES_FILE" || exit 1
+for emulator in "${VIDEO_MODE_EMULATORS[@]}"; do
+    echo "* emulator: $emulator"
+    echo "$emulator = \"$VIDEO_MODE\"" >> "$VIDEO_MODES_FILE" || exit 1
+done
 
-# configure video shader for the LCD-based installed cores
+# enable video shader option [TODO]
+echo "enabling video shader option ..."
 
-################################################################################
+# configure video shader for LCD-based cores
+echo "configuring video shader for LCD-based cores ..."
+for core_name in "${LCD_CORE_NAMES[@]}"; do
+    echo "* libretro core name: $core_name"
+    setup_shader_preset "$core_name" "$LCD_SHADER_PRESET" || exit 1
+done
+
+# configure video shader for CRT-based cores
+echo "configuring video shader for CRT-based cores ..."
+for core_name in "${CRT_CORE_NAMES[@]}"; do
+    echo "* libretro core name: $core_name"
+    setup_shader_preset "$core_name" "$CRT_SHADER_PRESET" || exit 1
+done
+
+#===============================================================================
 # finishing details
 
-# make login more silent
-touch ~/.hushlogin || exit 1
-
-# set the hostname to "retropie"
-sudo bash <<"EOF" || exit 1
-echo "retropie" > /etc/hostname
-sed -i "s/raspberrypi/retropie/g" /etc/hosts
+# set device hostname
+echo "setting device hostname ..."
+sudo bash <<EOF || exit 1
+echo "$HOSTNAME" > /etc/hostname
+sed -i "s/raspberrypi/$HOSTNAME/g" /etc/hosts
 EOF
 
-# do not wait for network interfaces during boot
-sudo rm -f /etc/systemd/system/dhcpcd.service.d/wait.conf || exit 1
+# enable hush login
+echo "enabling hush login ..."
+echo touch ~/.hushlogin || exit 1
 
-# make boot more silent
+# disable network wait during boot
+echo "disabling network wait during boot ..."
+echo sudo rm -f /etc/systemd/system/dhcpcd.service.d/wait.conf || exit 1
+
+# configure kernel cmdline for quiet boot [TODO]
+echo "configuring kernel cmdline for quiet boot ..."
+
+# disable boot rainbow splash screen
+echo "disabling boot rainbow splash screen ..."
+if ! grep -q "^disable_splash=" /boot/config.txt 2>/dev/null; then
+    echo "disable_splash=1" >> /boot/config.txt
+fi
