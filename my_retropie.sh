@@ -114,6 +114,13 @@ function setup_shader_preset() {
 }
 
 #===============================================================================
+# Welcome message
+
+echo
+echo "** Welcome to the MyRetroPie automated installation script **"
+echo
+
+#===============================================================================
 # RetroPie setup
 
 # clone latest RetroPie-Setup repository

@@ -13,6 +13,6 @@ All the instructions below are meant to be run as the normal user `pi`.
 
 4. Boot the Raspberry Pi device and login either via SSH or the console
 
-5. Install the `ca-certificates` and `git` packages:
+5. Install the `ca-certificates`, `git` and `curl` packages:
 
-       sudo apt-get install ca-certificates git
+       sudo apt-get install ca-certificates git curl
