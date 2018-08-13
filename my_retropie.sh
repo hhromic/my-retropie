@@ -203,8 +203,9 @@ touch ~/.hushlogin || exit 1
 # disable network wait during boot
 echo "disabling network wait during boot ..."
 sudo bash <<"EOF" || exit 1
-[[ -f /etc/systemd/system/dhcpcd.service.d/wait.conf ]] &&
-    sudo rm -f /etc/systemd/system/dhcpcd.service.d/wait.conf
+if [[ -f /etc/systemd/system/dhcpcd.service.d/wait.conf ]]; then
+    rm -f /etc/systemd/system/dhcpcd.service.d/wait.conf || exit 1
+fi
 EOF
 
 # configure kernel cmdline for quiet boot
