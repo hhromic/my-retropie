@@ -91,18 +91,17 @@ EOF
 
 function install_package_from_binary() {
     local package="$1"
-    cd ~/RetroPie-Setup || return
     local action
     for action in depends install_bin configure; do
-        sudo ./retropie_packages.sh "$package" "$action" || return
+        sudo ~/RetroPie-Setup/retropie_packages.sh \
+            "$package" "$action" || return
     done
 }
 
 function install_package_from_source() {
     local package="$1"
-    cd ~/RetroPie-Setup || return
-    sudo ./retropie_packages.sh "$package" clean || return
-    sudo ./retropie_packages.sh "$package"
+    sudo ~/RetroPie-Setup/retropie_packages.sh "$package" clean || return
+    sudo ~/RetroPie-Setup/retropie_packages.sh "$package"
 }
 
 function setup_shader_preset() {
@@ -125,8 +124,7 @@ echo
 
 # clone latest RetroPie-Setup repository
 echo "cloning latest Retropie-Setup repository ..."
-cd ~ || exit 1
-git clone https://github.com/RetroPie/RetroPie-Setup || exit 1
+git clone https://github.com/RetroPie/RetroPie-Setup ~/RetroPie-Setup || exit 1
 
 # install packages from binary
 echo "installing packages from binary ..."
@@ -184,17 +182,22 @@ EOF
 
 # enable hush login
 echo "enabling hush login ..."
-echo touch ~/.hushlogin || exit 1
+touch ~/.hushlogin || exit 1
 
 # disable network wait during boot
 echo "disabling network wait during boot ..."
-echo sudo rm -f /etc/systemd/system/dhcpcd.service.d/wait.conf || exit 1
+sudo bash <<"EOF" || exit 1
+[[ -f /etc/systemd/system/dhcpcd.service.d/wait.conf ]] &&
+sudo rm -f /etc/systemd/system/dhcpcd.service.d/wait.conf
+EOF
 
 # configure kernel cmdline for quiet boot [TODO]
 echo "configuring kernel cmdline for quiet boot ..."
 
 # disable boot rainbow splash screen
 echo "disabling boot rainbow splash screen ..."
+sudo bash <<"EOF" || exit 1
 if ! grep -q "^disable_splash=" /boot/config.txt 2>/dev/null; then
     echo "disable_splash=1" >> /boot/config.txt
 fi
+EOF
