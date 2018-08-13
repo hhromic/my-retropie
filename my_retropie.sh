@@ -204,18 +204,28 @@ touch ~/.hushlogin || exit 1
 echo "disabling network wait during boot ..."
 sudo bash <<"EOF" || exit 1
 [[ -f /etc/systemd/system/dhcpcd.service.d/wait.conf ]] &&
-sudo rm -f /etc/systemd/system/dhcpcd.service.d/wait.conf
+    sudo rm -f /etc/systemd/system/dhcpcd.service.d/wait.conf
 EOF
 
-# configure kernel cmdline for quiet boot [TODO]
+# configure kernel cmdline for quiet boot
 echo "configuring kernel cmdline for quiet boot ..."
 sudo bash <<"EOF" || exit 1
-#logo.nologo
-#quiet
-#console=tty3
-#loglevel=3
-#vt.global_cursor_default=0
-#plymouth.enable=0
+function ensure_variable() {
+    local name="$1"
+    local value="$2"
+    [[ -n "$value" ]] && value="=$value"
+    if ! tr " " "\n" < /boot/cmdline.txt | grep -q "^$name=\?"; then
+        sed -i "s/$/ $name$value/g" /boot/cmdline.txt
+    else
+        sed -i "s/$name=\?\S*/$name$value/g" /boot/cmdline.txt
+    fi
+}
+ensure_variable "console" "tty3"
+ensure_variable "logo.nologo"
+ensure_variable "quiet"
+ensure_variable "loglevel" "3"
+ensure_variable "vt.global_cursor_default" "0"
+ensure_variable "plymouth.enable" "0"
 EOF
 
 # disable boot rainbow splash screen
@@ -225,3 +235,10 @@ if ! grep -q "^disable_splash=" /boot/config.txt 2>/dev/null; then
     echo "disable_splash=1" >> /boot/config.txt
 fi
 EOF
+
+#===============================================================================
+# Finished message
+
+echo
+echo "** End of the MyRetroPie automated installation script **"
+echo
