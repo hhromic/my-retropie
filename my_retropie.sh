@@ -92,6 +92,7 @@ EOF
 function install_package_from_binary() {
     local package="$1"
     cd ~/RetroPie-Setup || return
+    local action
     for action in depends install_bin configure; do
         sudo ./retropie_packages.sh "$package" "$action" || return
     done
