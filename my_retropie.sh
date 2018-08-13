@@ -35,6 +35,9 @@ VIDEO_MODE="CEA-4"
 # emulators to set default video mode for
 VIDEO_MODE_EMULATORS=("${PACKAGES_SOURCE[@]}")
 
+# retroarch config file
+RETROARCH_CONFIG_FILE=/opt/retropie/configs/all/retroarch.cfg
+
 # shaders preset directory
 SHADER_PRESETS_DIR=/opt/retropie/configs/all/retroarch/shaders/presets
 
@@ -153,8 +156,10 @@ for emulator in "${VIDEO_MODE_EMULATORS[@]}"; do
     echo "$emulator = \"$VIDEO_MODE\"" >> "$VIDEO_MODES_FILE" || exit 1
 done
 
-# enable video shader option [TODO]
+# enable video shader option
 echo "enabling video shader option ..."
+sed -i 's/^.*video_shader_enable.*$/video_shader_enable = true/g' \
+    "$RETROARCH_CONFIG_FILE"
 
 # configure video shader for LCD-based cores
 echo "configuring video shader for LCD-based cores ..."
