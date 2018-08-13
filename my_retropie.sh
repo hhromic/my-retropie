@@ -170,7 +170,7 @@ done
 # enable video shader option
 echo "enabling video shader option ..."
 sed -i 's/^.*video_shader_enable.*$/video_shader_enable = true/g' \
-    "$RETROARCH_CONFIG_FILE"
+    "$RETROARCH_CONFIG_FILE" || exit 1
 
 # configure video shader for LCD-based cores
 echo "configuring video shader for LCD-based cores ..."
@@ -209,6 +209,14 @@ EOF
 
 # configure kernel cmdline for quiet boot [TODO]
 echo "configuring kernel cmdline for quiet boot ..."
+sudo bash <<"EOF" || exit 1
+#logo.nologo
+#quiet
+#console=tty3
+#loglevel=3
+#vt.global_cursor_default=0
+#plymouth.enable=0
+EOF
 
 # disable boot rainbow splash screen
 echo "disabling boot rainbow splash screen ..."
