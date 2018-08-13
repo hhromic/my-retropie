@@ -3,8 +3,6 @@
 This is my personal guide for setting up a current version of RetroPie.
 All the instructions below are meant to be run as the normal user `pi`.
 
-## Raspbian Stretch Nano
-
 1. Download the latest version of Raspbian Stretch Nano from <https://github.com/hhromic/pi-gen-nano/releases/latest>
 
 2. Copy the downloaded image to an SD Card
@@ -16,3 +14,8 @@ All the instructions below are meant to be run as the normal user `pi`.
 5. Install the `ca-certificates`, `git` and `curl` packages:
 
        sudo apt-get install ca-certificates git curl
+
+6. Start the automated installation script:
+
+       bash <(curl -s https://git.io/fNFAV)
+
