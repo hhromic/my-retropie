@@ -1,14 +1,42 @@
 #!/usr/bin/env bash
-# Automated setup for my personal RetroPie installation.
+# Automated management script for my personal RetroPie installation.
 # script by github.com/hhromic
+
+#===============================================================================
+# Files and directories
+
+# RetroPie base directory
+: "${RETROPIE_BASE_DIR:=$HOME/RetroPie-Setup}"
+
+# config files base directory
+: "${CONFIGS_BASE_DIR:=/opt/retropie/configs}"
+
+# video modes config file
+: "${VIDEO_MODES_FILE:=$CONFIGS_BASE_DIR/all/videomodes.cfg}"
+
+# retroarch config file
+: "${RETROARCH_CONFIG_FILE:=$CONFIGS_BASE_DIR/all/retroarch.cfg}"
+
+# shaders base directory
+: "${SHADERS_BASE_DIR:=$CONFIGS_BASE_DIR/all/retroarch/shaders}"
+
+# shaders directory
+: "${SHADERS_DIR:=$SHADERS_BASE_DIR/shaders}"
+
+# shaders presets directory
+: "${SHADERS_PRESETS_DIR:=$SHADERS_BASE_DIR/presets}"
 
 #===============================================================================
 # Configuration
 
+# RetroPie git repository URL
+: "${RETROPIE_REPOSITORY:=https://github.com/RetroPie/RetroPie-Setup}"
+
 # device hostname
-HOSTNAME="retropie"
+: "${DEVICE_HOSTNAME:=retropie}"
 
 # packages to be installed from binary
+[[ -z $PACKAGES_BINARY ]] &&
 PACKAGES_BINARY=(
     "retroarch"
     "emulationstation"
@@ -17,6 +45,7 @@ PACKAGES_BINARY=(
 )
 
 # packages to be installed from source
+[[ -z $PACKAGES_SOURCE ]] &&
 PACKAGES_SOURCE=(
     "lr-genesis-plus-gx"
     "lr-mgba"
@@ -26,30 +55,24 @@ PACKAGES_SOURCE=(
     "lr-snes9x"
 )
 
-# video modes config file
-VIDEO_MODES_FILE=/opt/retropie/configs/all/videomodes.cfg
-
-# default video mode for emulators
-VIDEO_MODE="CEA-4"
+# default emulators video mode
+: "${VIDEO_MODE:=CEA-4}"
 
 # emulators to set default video mode for
+[[ -z $VIDEO_MODE_EMULATORS ]] &&
 VIDEO_MODE_EMULATORS=("${PACKAGES_SOURCE[@]}")
 
-# retroarch config file
-RETROARCH_CONFIG_FILE=/opt/retropie/configs/all/retroarch.cfg
-
-# shaders preset directory
-SHADER_PRESETS_DIR=/opt/retropie/configs/all/retroarch/shaders/presets
-
 # LCD-based libretro cores
+[[ -z $LCD_CORE_NAMES ]] &&
 LCD_CORE_NAMES=(
     "mGBA"
 )
 
 # LCD-based shader preset
-read -r -d "" LCD_SHADER_PRESET <<"EOF"
+[[ -z $LCD_SHADER_PRESET ]] &&
+read -r -d "" LCD_SHADER_PRESET <<EOF
 shaders = "1"
-shader0 = "/home/pi/.config/retroarch/shaders/shaders/zfast_lcd_standard.glsl"
+shader0 = "$SHADERS_DIR/zfast_lcd_standard.glsl"
 filter_linear0 = "true"
 wrap_mode0 = "clamp_to_border"
 mipmap_input0 = "false"
@@ -62,6 +85,7 @@ GBAGAMMA = "1.000000"
 EOF
 
 # CRT-based libretro cores
+[[ -z $CRT_CORE_NAMES ]] &&
 CRT_CORE_NAMES=(
     "Genesis Plus GX"
     "Nestopia"
@@ -71,9 +95,10 @@ CRT_CORE_NAMES=(
 )
 
 # CRT-based shader preset
-read -r -d "" CRT_SHADER_PRESET <<"EOF"
+[[ -z $CRT_SHADER_PRESET ]] &&
+read -r -d "" CRT_SHADER_PRESET <<EOF
 shaders = "1"
-shader0 = "/home/pi/.config/retroarch/shaders/shaders/zfast_crt_standard.glsl"
+shader0 = "$SHADERS_DIR/zfast_crt_standard.glsl"
 filter_linear0 = "true"
 wrap_mode0 = "clamp_to_border"
 mipmap_input0 = "false"
@@ -90,156 +115,341 @@ MASK_FADE = "0.800000"
 EOF
 
 #===============================================================================
-# Functions
+# Helpers
 
-function install_package_from_binary() {
-    local package="$1"
-    local action
-    for action in depends install_bin configure; do
-        sudo ~/RetroPie-Setup/retropie_packages.sh \
-            "$package" "$action" || return
+function ansi_code {
+    local token
+    local code
+    for token in "$@"; do
+        code=""
+        case "$token" in
+            reset)      code="0m" ;;
+            bold)       code="1m" ;;
+            underline)  code="4m" ;;
+            blink)      code="5m" ;;
+            reverse)    code="7m" ;;
+            invisible)  code="8m" ;;
+            fg_black)   code="30m" ;;
+            fg_red)     code="31m" ;;
+            fg_green)   code="32m" ;;
+            fg_yellow)  code="33m" ;;
+            fg_blue)    code="34m" ;;
+            fg_magenta) code="35m" ;;
+            fg_cyan)    code="36m" ;;
+            fg_white)   code="37m" ;;
+            bg_black)   code="40m" ;;
+            bg_red)     code="41m" ;;
+            bg_green)   code="42m" ;;
+            bg_yellow)  code="43m" ;;
+            bg_blue)    code="44m" ;;
+            bg_magenta) code="45m" ;;
+            bg_cyan)    code="46m" ;;
+            bg_white)   code="47m" ;;
+        esac
+        [[ -n "$code" ]] && echo -n -e "\\033[$code"
     done
 }
 
-function install_package_from_source() {
-    local package="$1"
-    sudo ~/RetroPie-Setup/retropie_packages.sh "$package" clean || return
-    sudo ~/RetroPie-Setup/retropie_packages.sh "$package"
+function show_banner {
+    ansi_code reset
+    echo
+    ansi_code bold fg_red
+    echo "= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = ="
+    ansi_code fg_yellow; echo "$@"
+    ansi_code fg_red
+    echo "= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = ="
+    ansi_code reset
 }
 
-function setup_shader_preset() {
+function show_message {
+    ansi_code reset
+    echo
+    ansi_code fg_cyan; echo -n ">>> "
+    ansi_code bold; echo "$@"
+    ansi_code reset
+}
+
+function show_variables {
+    local element
+    show_message "Files and directories"
+    echo
+
+    ansi_code fg_magenta; echo -n "RETROPIE_BASE_DIR     "
+    ansi_code bold; echo -n "= "
+    ansi_code reset; echo "$RETROPIE_BASE_DIR"
+
+    ansi_code fg_magenta; echo -n "CONFIGS_BASE_DIR      "
+    ansi_code bold; echo -n "= "
+    ansi_code reset; echo "$CONFIGS_BASE_DIR"
+
+    ansi_code fg_magenta; echo -n "VIDEO_MODES_FILE      "
+    ansi_code bold; echo -n "= "
+    ansi_code reset; echo "$VIDEO_MODES_FILE"
+
+    ansi_code fg_magenta; echo -n "RETROARCH_CONFIG_FILE "
+    ansi_code bold; echo -n "= "
+    ansi_code reset; echo "$RETROARCH_CONFIG_FILE"
+
+    ansi_code fg_magenta; echo -n "SHADERS_BASE_DIR      "
+    ansi_code bold; echo -n "= "
+    ansi_code reset; echo "$SHADERS_BASE_DIR"
+
+    ansi_code fg_magenta; echo -n "SHADERS_DIR           "
+    ansi_code bold; echo -n "= "
+    ansi_code reset; echo "$SHADERS_DIR"
+
+    ansi_code fg_magenta; echo -n "SHADERS_PRESETS_DIR   "
+    ansi_code bold; echo -n "= "
+    ansi_code reset; echo "$SHADERS_PRESETS_DIR"
+
+    show_message "Configuration"
+    echo
+
+    ansi_code fg_magenta; echo -n "RETROPIE_REPOSITORY   "
+    ansi_code bold; echo -n "= "
+    ansi_code reset; echo "$RETROPIE_REPOSITORY"
+
+    ansi_code fg_magenta; echo -n "DEVICE_HOSTNAME       "
+    ansi_code bold; echo -n "= "
+    ansi_code reset; echo "$DEVICE_HOSTNAME"
+
+    ansi_code fg_magenta; echo -n "PACKAGES_BINARY       "
+    ansi_code bold; echo -n "= "
+    ansi_code reset; echo "${PACKAGES_BINARY[@]}"
+
+    ansi_code fg_magenta; echo -n "PACKAGES_SOURCE       "
+    ansi_code bold; echo -n "= "
+    ansi_code reset; echo "${PACKAGES_SOURCE[@]}"
+
+    ansi_code fg_magenta; echo -n "VIDEO_MODE            "
+    ansi_code bold; echo -n "= "
+    ansi_code reset; echo "$VIDEO_MODE"
+
+    ansi_code fg_magenta; echo -n "VIDEO_MODE_EMULATORS  "
+    ansi_code bold; echo -n "= "
+    ansi_code reset; echo "${VIDEO_MODE_EMULATORS[@]}"
+
+    ansi_code fg_magenta; echo -n "LCD_CORE_NAMES        "
+    ansi_code bold; echo -n "="
+    ansi_code reset
+    for element in "${LCD_CORE_NAMES[@]}"; do
+        echo -n " \"$element\""
+    done
+    echo
+
+    ansi_code fg_magenta; echo -n "LCD_SHADER_PRESET     "
+    ansi_code bold; echo "= "
+    ansi_code reset; echo "$LCD_SHADER_PRESET"
+
+    ansi_code fg_magenta; echo -n "CRT_CORE_NAMES        "
+    ansi_code bold; echo -n "="
+    ansi_code reset
+    for element in "${CRT_CORE_NAMES[@]}"; do
+        echo -n " \"$element\""
+    done
+    echo
+
+    ansi_code fg_magenta; echo -n "CRT_SHADER_PRESET     "
+    ansi_code bold; echo "= "
+    ansi_code reset; echo "$CRT_SHADER_PRESET"
+}
+
+function confirm() {
+    local ans
+    ansi_code reset
+    echo
+    echo -n "$@" "["
+    ansi_code fg_green; echo -n "y"
+    ansi_code reset; echo -n "/"
+    ansi_code fg_red; echo -n "N"
+    ansi_code reset; echo -n "] "
+    read -r ans
+    case "$ans" in
+        y*|Y*) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
+#===============================================================================
+# Actions helpers
+
+function call_retropie_packages {
+    sudo "$RETROPIE_BASE_DIR"/retropie_packages.sh "$@"
+}
+
+function install_packages_from_binary() {
+    local package
+    local action
+    for package in "${PACKAGES_BINARY[@]}"; do
+        show_message "Installing package from binary: $package"
+        for action in depends install_bin configure; do
+            call_retropie_packages "$package" "$action" || return
+        done
+    done
+}
+
+function install_packages_from_source() {
+    local package
+    for package in "${PACKAGES_SOURCE[@]}"; do
+        show_message "Installing package from source: $package"
+        call_retropie_packages "$package" clean || return
+        call_retropie_packages "$package" || return
+    done
+}
+
+function write_shader_preset() {
     local core_name="$1"
     local preset="$2"
-    local base_dir="$SHADER_PRESETS_DIR"/"$core_name"
+    local base_dir="$SHADERS_PRESETS_DIR"/"$core_name"
     mkdir -p "$base_dir" || return
-    echo "$preset" > "$base_dir"/"$core_name".glslp
+    echo "$preset" > "$base_dir"/"$core_name".glslp || return
 }
 
 #===============================================================================
-# Welcome message
+# Actions
 
-echo
-echo "** Welcome to the MyRetroPie automated installation script **"
-echo
+function action_initial_setup {
+    show_banner "Initial RetroPie Setup"
 
-#===============================================================================
-# RetroPie setup
-
-# clone latest RetroPie-Setup repository
-echo "cloning latest Retropie-Setup repository ..."
-git clone https://github.com/RetroPie/RetroPie-Setup ~/RetroPie-Setup || exit 1
-
-# install packages from binary
-echo "installing packages from binary ..."
-for package in "${PACKAGES_BINARY[@]}"; do
-    echo "package: $package"
-    install_package_from_binary "$package" || exit 1
-done
-
-# install packages from source
-echo "installing packages from source ..."
-for package in "${PACKAGES_SOURCE[@]}"; do
-    echo "package: $package"
-    install_package_from_source "$package" || exit 1
-done
-
-# get bluetooth depends
-echo "getting bluetooth depends ..."
-sudo ~/RetroPie-Setup/retropie_packages.sh bluetooth depends || exit 1
-
-# enable splashscreen
-echo "enabling splashscreen ..."
-sudo ~/RetroPie-Setup/retropie_packages.sh splashscreen default || exit 1
-sudo ~/RetroPie-Setup/retropie_packages.sh splashscreen enable || exit 1
-
-# enable autostart
-echo "enabling autostart ..."
-sudo ~/RetroPie-Setup/retropie_packages.sh autostart enable || exit 1
-
-#===============================================================================
-# Video modes and shaders setup
-
-# set default video mode for emulators
-echo "setting default video mode for emulators ..."
-:> "$VIDEO_MODES_FILE" || exit 1
-for emulator in "${VIDEO_MODE_EMULATORS[@]}"; do
-    echo "* emulator: $emulator"
-    echo "$emulator = \"$VIDEO_MODE\"" >> "$VIDEO_MODES_FILE" || exit 1
-done
-
-# enable video shader option
-echo "enabling video shader option ..."
-sed -i 's/^.*video_shader_enable.*$/video_shader_enable = true/g' \
-    "$RETROARCH_CONFIG_FILE" || exit 1
-
-# configure video shader for LCD-based cores
-echo "configuring video shader for LCD-based cores ..."
-for core_name in "${LCD_CORE_NAMES[@]}"; do
-    echo "* libretro core name: $core_name"
-    setup_shader_preset "$core_name" "$LCD_SHADER_PRESET" || exit 1
-done
-
-# configure video shader for CRT-based cores
-echo "configuring video shader for CRT-based cores ..."
-for core_name in "${CRT_CORE_NAMES[@]}"; do
-    echo "* libretro core name: $core_name"
-    setup_shader_preset "$core_name" "$CRT_SHADER_PRESET" || exit 1
-done
-
-#===============================================================================
-# finishing details
-
-# set device hostname
-echo "setting device hostname ..."
-sudo bash <<EOF || exit 1
-echo "$HOSTNAME" > /etc/hostname
-sed -i "s/raspberrypi/$HOSTNAME/g" /etc/hosts
+    # configure device hostname
+    show_message "Configuring device hostname ..."
+    sudo bash <<EOF || return
+echo "$DEVICE_HOSTNAME" > /etc/hostname || exit
+sed -i "s/raspberrypi/$DEVICE_HOSTNAME/g" /etc/hosts
 EOF
 
-# enable hush login
-echo "enabling hush login ..."
-touch ~/.hushlogin || exit 1
-
-# disable network wait during boot
-echo "disabling network wait during boot ..."
-sudo bash <<"EOF" || exit 1
+    # disable network wait during boot
+    show_message "Disabling network wait during boot ..."
+    sudo bash <<"EOF" || return
 if [[ -f /etc/systemd/system/dhcpcd.service.d/wait.conf ]]; then
-    rm -f /etc/systemd/system/dhcpcd.service.d/wait.conf || exit 1
+    rm -f /etc/systemd/system/dhcpcd.service.d/wait.conf || exit
 fi
 EOF
 
-# configure kernel cmdline for quiet boot
-echo "configuring kernel cmdline for quiet boot ..."
-sudo bash <<"EOF" || exit 1
+    # clone latest RetroPie-Setup repository
+    show_message "Cloning latest Retropie-Setup repository ..."
+    git clone "$RETROPIE_REPOSITORY" "$RETROPIE_BASE_DIR" || return
+}
+
+function action_install_packages {
+    show_banner "RetroPie Packages Installation"
+
+    # install packages from binary
+    install_packages_from_binary || return
+
+    # install packages from source
+    install_packages_from_source || return
+}
+
+function action_configure_retropie {
+    show_banner "RetroPie Configuration"
+
+    # get bluetooth depends
+    show_message "Getting bluetooth depends ..."
+    call_retropie_packages bluetooth depends || return
+
+    # enable splashscreen
+    show_message "Enabling splashscreen ..."
+    call_retropie_packages splashscreen default || return
+    call_retropie_packages splashscreen enable || return
+
+    # enable autostart
+    show_message "Enabling autostart ..."
+    call_retropie_packages autostart enable || return
+}
+
+function action_configure_videomode {
+    local emulator
+    show_banner "Emulators Video Mode Configuration"
+    :> "$VIDEO_MODES_FILE" || return
+    for emulator in "${VIDEO_MODE_EMULATORS[@]}"; do
+        show_message "Configuring emulator: $emulator"
+        echo "$emulator = \"$VIDEO_MODE\"" >> "$VIDEO_MODES_FILE" || return
+    done
+}
+
+function action_configure_shaders {
+    local core_name
+    show_banner "Retroarch Video Shaders Configuration"
+
+    # enable video shader option
+    show_message "Enabling video shader option in retroarch ..."
+    sed -i 's/^.*video_shader_enable.*$/video_shader_enable = true/g' \
+        "$RETROARCH_CONFIG_FILE" || return
+
+    # configure video shader for LCD-based cores
+    for core_name in "${LCD_CORE_NAMES[@]}"; do
+        show_message "Configuring LCD-based libretro core name: $core_name"
+        write_shader_preset "$core_name" "$LCD_SHADER_PRESET" || return
+    done
+
+    # configure video shader for CRT-based cores
+    for core_name in "${CRT_CORE_NAMES[@]}"; do
+        show_message "Configuring CRT-based libretro core name: $core_name"
+        writer_shader_preset "$core_name" "$CRT_SHADER_PRESET" || return
+    done
+}
+
+function action_configure_quietmode {
+    show_banner "Quiet Mode Configuration"
+
+    # enable hush login
+    show_message "Enabling hush login ..."
+    touch "$HOME"/.hushlogin || return
+
+    # disable boot rainbow splash screen
+    show_message "Disabling boot rainbow splash screen ..."
+    sudo bash <<"EOF" || return
+if ! grep -q "^disable_splash=" /boot/config.txt 2>/dev/null; then
+    echo "disable_splash=1" >> /boot/config.txt || exit
+fi
+EOF
+
+    # configure kernel cmdline for quiet boot
+    show_message "Configuring kernel cmdline ..."
+    sudo bash <<"EOF" || return
 function ensure_variable() {
     local name="$1"
     local value="$2"
     [[ -n "$value" ]] && value="=$value"
     if ! tr " " "\n" < /boot/cmdline.txt | grep -q "^$name=\?"; then
-        sed -i "s/$/ $name$value/g" /boot/cmdline.txt
+        sed -i "s/$/ $name$value/g" /boot/cmdline.txt || return
     else
-        sed -i "s/$name=\?\S*/$name$value/g" /boot/cmdline.txt
+        sed -i "s/$name=\?\S*/$name$value/g" /boot/cmdline.txt || return
     fi
 }
-ensure_variable "console" "tty3"
-ensure_variable "logo.nologo"
-ensure_variable "quiet"
-ensure_variable "loglevel" "3"
-ensure_variable "vt.global_cursor_default" "0"
-ensure_variable "plymouth.enable" "0"
+ensure_variable "console" "tty3" || exit
+ensure_variable "logo.nologo" || exit
+ensure_variable "quiet" || exit
+ensure_variable "loglevel" "3" || exit
+ensure_variable "vt.global_cursor_default" "0" || exit
+ensure_variable "plymouth.enable" "0" || exit
 EOF
-
-# disable boot rainbow splash screen
-echo "disabling boot rainbow splash screen ..."
-sudo bash <<"EOF" || exit 1
-if ! grep -q "^disable_splash=" /boot/config.txt 2>/dev/null; then
-    echo "disable_splash=1" >> /boot/config.txt
-fi
-EOF
+}
 
 #===============================================================================
-# Finished message
+# Action dispatcher
 
-echo
-echo "** End of the MyRetroPie automated installation script **"
+show_banner "Welcome to MyRetroPie !"
+show_variables
+
+case "$1" in
+    update)
+        show_message "Action: UPDATE PACKAGES"
+        confirm "Continue?" || exit
+        action_install_packages || exit
+        ;;
+    *)
+        show_message "Action: INITIAL SETUP"
+        confirm "Continue?" || exit
+        action_initial_setup || exit
+        action_install_packages || exit
+        action_configure_retropie || exit
+        action_configure_videomode || exit
+        action_configure_shaders || exit
+        action_configure_quietmode || exit
+        ;;
+esac
+
+show_banner "MyRetroPie finished !"
 echo
