@@ -32,7 +32,7 @@
 # device hostname
 : "${DEVICE_HOSTNAME:=retropie}"
 
-# device timezone [TODO]
+# device timezone
 : "${DEVICE_TIMEZONE:=Etc/UTC}"
 
 #===============================================================================
@@ -123,6 +123,21 @@ EOF
 #===============================================================================
 # Helpers
 
+function print {
+    local format="$1"; shift
+    # shellcheck disable=SC2059
+    printf "$format" "$@"
+}
+
+function new_line {
+    print "%s" $'\n'
+}
+
+function println {
+    local format="$1"; shift
+    print "$format" "$@" && new_line
+}
+
 function ansi_code {
     local token
     local code
@@ -152,88 +167,81 @@ function ansi_code {
             bg_cyan)    code="46m" ;;
             bg_white)   code="47m" ;;
         esac
-        [[ -n "$code" ]] && echo -n -e $'\e'"[$code"
+        [[ -n "$code" ]] && print $'\e'"[%s" "$code"
     done
-}
-
-function show_banner {
-    local format="$1"; shift
-    ansi_code reset; echo
-    ansi_code bold fg_red
-    echo "= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = ="
-    ansi_code fg_yellow
-    # shellcheck disable=SC2059
-    printf "$format"$'\n' "$@"
-    ansi_code fg_red
-    echo "= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = ="
-    ansi_code reset
-}
-
-function show_message {
-    local format="$1"; shift
-    ansi_code reset; echo
-    ansi_code fg_cyan; echo -n ">>> "
-    ansi_code bold
-    # shellcheck disable=SC2059
-    printf "$format"$'\n' "$@"
-    ansi_code reset
-}
-
-function show_variables {
-    function _show_var {
-        local _label="$1"; shift
-        ansi_code reset
-        ansi_code fg_magenta; echo -n "$_label"
-        ansi_code bold; echo -n " = "
-        ansi_code reset; echo "$@"
-    }
-    function _quote_arr {
-        local idx
-        for idx in $(seq "$#"); do
-            [[ "$idx" -ne 1 ]] && echo -n " "
-            echo -n "\"${!idx}\""
-        done
-    }
-
-    show_message "Files and directories"; echo
-    _show_var "RETROPIE_BASE_DIR    " "$RETROPIE_BASE_DIR"
-    _show_var "CONFIGS_BASE_DIR     " "$CONFIGS_BASE_DIR"
-    _show_var "VIDEO_MODES_FILE     " "$VIDEO_MODES_FILE"
-    _show_var "RETROARCH_CONFIG_FILE" "$RETROARCH_CONFIG_FILE"
-    _show_var "SHADERS_BASE_DIR     " "$SHADERS_BASE_DIR"
-    _show_var "SHADERS_DIR          " "$SHADERS_DIR"
-    _show_var "SHADERS_PRESETS_DIR  " "$SHADERS_PRESETS_DIR"
-
-    show_message "Raspbian Configuration"; echo
-    _show_var "DEVICE_HOSTNAME      " "$DEVICE_HOSTNAME"
-    _show_var "DEVICE_TIMEZONE      " "$DEVICE_TIMEZONE"
-
-    show_message "RetroPie Configuration"; echo
-    _show_var "RETROPIE_REPOSITORY  " "$RETROPIE_REPOSITORY"
-    _show_var "PACKAGES_BINARY      " "${PACKAGES_BINARY[@]}"
-    _show_var "PACKAGES_SOURCE      " "${PACKAGES_SOURCE[@]}"
-    _show_var "VIDEO_MODE           " "$VIDEO_MODE"
-    _show_var "VIDEO_MODE_EMULATORS " "${VIDEO_MODE_EMULATORS[@]}"
-    _show_var "LCD_CORE_NAMES       " "$(_quote_arr "${LCD_CORE_NAMES[@]}")"
-    _show_var "LCD_SHADER_PRESET    " $'\n'"$LCD_SHADER_PRESET"
-    _show_var "CRT_CORE_NAMES       " "$(_quote_arr "${CRT_CORE_NAMES[@]}")"
-    _show_var "CRT_SHADER_PRESET    " $'\n'"$CRT_SHADER_PRESET"
 }
 
 function confirm() {
     local ans
-    ansi_code reset
-    echo
-    echo -n "$@" "("
-    ansi_code fg_green; echo -n "y"
-    ansi_code reset; echo -n "/["
-    ansi_code fg_red; echo -n "N"
-    ansi_code reset; echo -n "]) "
+    ansi_code reset && new_line && print "%s (" "$@" &&
+    ansi_code fg_green && print "y" &&
+    ansi_code reset && print "/" &&
+    ansi_code fg_red && print "[N]" &&
+    ansi_code reset && print ") "
     read -r ans
     case "$ans" in
         y*|Y*) return 0 ;;
         *) return 1 ;;
     esac
+}
+
+function show_banner {
+    local format="$1"; shift
+    ansi_code reset && new_line &&
+    ansi_code bold fg_red &&
+    println "= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =" &&
+    ansi_code fg_yellow && println "$format" "$@" &&
+    ansi_code fg_red &&
+    println "= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =" &&
+    ansi_code reset
+}
+
+function show_message {
+    local format="$1"; shift
+    ansi_code reset && new_line &&
+    ansi_code fg_cyan && print ">>> " &&
+    ansi_code bold && println "$format" "$@" && ansi_code reset
+}
+
+function show_variables {
+    function _show_var {
+        local _label="$1"; shift
+        ansi_code reset &&
+        ansi_code fg_magenta && print "%s" "$_label" &&
+        ansi_code bold && print " = " &&
+        ansi_code reset && println "%s " "$@"
+    }
+    function _quote_arr {
+        local _idx
+        for _idx in $(seq "$#"); do
+            [[ "$_idx" -ne 1 ]] && print " "
+            print $'\"'"%s"$'\"' "${!_idx}"
+        done
+    }
+
+    show_message "Files and directories" && new_line &&
+    _show_var "RETROPIE_BASE_DIR    " "$RETROPIE_BASE_DIR" &&
+    _show_var "CONFIGS_BASE_DIR     " "$CONFIGS_BASE_DIR" &&
+    _show_var "VIDEO_MODES_FILE     " "$VIDEO_MODES_FILE" &&
+    _show_var "RETROARCH_CONFIG_FILE" "$RETROARCH_CONFIG_FILE" &&
+    _show_var "SHADERS_BASE_DIR     " "$SHADERS_BASE_DIR" &&
+    _show_var "SHADERS_DIR          " "$SHADERS_DIR" &&
+    _show_var "SHADERS_PRESETS_DIR  " "$SHADERS_PRESETS_DIR" &&
+
+    show_message "Raspbian configuration" && new_line &&
+    _show_var "DEVICE_HOSTNAME      " "$DEVICE_HOSTNAME" &&
+    _show_var "DEVICE_TIMEZONE      " "$DEVICE_TIMEZONE" &&
+
+    show_message "RetroPie configuration" && new_line &&
+    _show_var "RETROPIE_REPOSITORY  " "$RETROPIE_REPOSITORY" &&
+    _show_var "PACKAGES_BINARY      " "${PACKAGES_BINARY[@]}" &&
+    _show_var "PACKAGES_SOURCE      " "${PACKAGES_SOURCE[@]}" &&
+    _show_var "VIDEO_MODE           " "$VIDEO_MODE" &&
+    _show_var "VIDEO_MODE_EMULATORS " "${VIDEO_MODE_EMULATORS[@]}" &&
+    _show_var "LCD_CORE_NAMES       " "$(_quote_arr "${LCD_CORE_NAMES[@]}")" &&
+    _show_var "LCD_SHADER_PRESET    " $'\n'"$LCD_SHADER_PRESET" &&
+    _show_var "CRT_CORE_NAMES       " "$(_quote_arr "${CRT_CORE_NAMES[@]}")" &&
+    _show_var "CRT_SHADER_PRESET    " $'\n'"$CRT_SHADER_PRESET"
 }
 
 #===============================================================================
@@ -246,7 +254,7 @@ apt-get -y dist-upgrade
 EOF
 }
 
-function set_hostname {
+function set_hostname { # [TODO:IMPROVE]
     local hostname="$1"
     sudo bash <<EOF
 echo "$hostname" > /etc/hostname || exit
@@ -254,7 +262,7 @@ sed -i "s/raspberrypi/$hostname/g" /etc/hosts
 EOF
 }
 
-function set_timezone { # [TEST]
+function set_timezone { # [TODO:TEST:IMPROVE]
     local timezone="$1"
     sudo bash <<EOF
 echo "$timezone" > /etc/timezone || exit
@@ -304,7 +312,7 @@ fi
 EOF
 }
 
-function configure_kcmdline {
+function configure_kcmdline { # [TODO:IMPROVE]
     sudo bash <<"EOF"
 function _ensure_variable() {
     local name="$1"
@@ -390,7 +398,7 @@ function action_configure_retropie {
     call_retropie_packages autostart enable || return
 }
 
-function action_configure_videomode {
+function action_configure_videomode { # [TODO:IMPROVE]
     local emulator
     show_banner "Emulators Video Mode Configuration"
     :> "$VIDEO_MODES_FILE" || return
@@ -400,7 +408,7 @@ function action_configure_videomode {
     done
 }
 
-function action_configure_shaders {
+function action_configure_shaders { # [TODO:IMPROVE]
     local core_name
     show_banner "Retroarch Video Shaders Configuration"
 
@@ -463,5 +471,4 @@ case "$1" in
         ;;
 esac
 
-show_banner "MyRetroPie finished !"
-echo
+show_banner "MyRetroPie finished !" && new_line
