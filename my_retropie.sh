@@ -254,15 +254,16 @@ function set_hostname { # [TODO:IMPROVE]
     local hostname="$1"
     sudo bash <<EOF
 echo "$hostname" > /etc/hostname || exit
-sed -i "s/raspberrypi/$hostname/g" /etc/hosts
+sed -i "s/raspberrypi/$hostname/g" /etc/hosts || exit
 EOF
 }
 
-function set_timezone { # [TODO:TEST:IMPROVE]
+function set_timezone {
     local timezone="$1"
     sudo bash <<EOF
+rm -f /etc/localtime || exit
 echo "$timezone" > /etc/timezone || exit
-dpkg-reconfigure -f noninteractive tzdata
+dpkg-reconfigure -f noninteractive tzdata || exit
 EOF
 }
 
