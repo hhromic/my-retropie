@@ -142,7 +142,7 @@ function ansi_code {
     local _code
     for _token in "$@"; do
         _code=""
-        case "$token" in
+        case "$_token" in
             reset)      _code="0m" ;;
             bold)       _code="1m" ;;
             underline)  _code="4m" ;;
@@ -297,7 +297,7 @@ function install_package_from_source() {
 function write_shader_preset() {
     local _core_name="$1"
     local _preset="$2"
-    local _base_dir="$SHADERS_PRESETS_DIR"/"$core_name"
+    local _base_dir="$SHADERS_PRESETS_DIR"/"$_core_name"
     mkdir -p "$_base_dir" || return
     echo "$_preset" > "$_base_dir"/"$_core_name".glslp || return
 }
