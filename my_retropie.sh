@@ -203,8 +203,7 @@ function show_message {
 function show_variables {
     function _show_var {
         local _label="$1"; shift
-        ansi_code reset &&
-        ansi_code fg_magenta && print "%s" "$_label" &&
+        ansi_code reset fg_magenta && print "%s" "$_label" &&
         ansi_code bold && print " = " &&
         ansi_code reset && println "%s " "$@"
     }
