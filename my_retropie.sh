@@ -443,7 +443,7 @@ function action_configure_quietmode {
 
     # configure kernel cmdline for quiet boot
     show_message "Configuring kernel cmdline ..."
-    configure_kcmdline
+    configure_kcmdline || return
 }
 
 #===============================================================================
