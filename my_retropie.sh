@@ -250,11 +250,12 @@ apt-get -y dist-upgrade
 EOF
 }
 
-function set_hostname { # [TODO:IMPROVE]
+function set_hostname {
     local hostname="$1"
     sudo bash <<EOF
+current_hostname=$(cat /etc/hostname | tr -d " \t\n\r")
 echo "$hostname" > /etc/hostname || exit
-sed -i "s/raspberrypi/$hostname/g" /etc/hosts || exit
+sed -i "s/127.0.1.1.*$current_hostname/127.0.1.1\t$hostname/g" /etc/hosts || exit
 EOF
 }
 
