@@ -170,7 +170,7 @@ function ansi_code {
     done
 }
 
-function confirm() {
+function confirm {
     local _ans
     ansi_code reset && new_line && print "%s (" "$@" &&
     ansi_code fg_green && print "y" &&
@@ -208,10 +208,11 @@ function show_variables {
         ansi_code reset && println "%s " "$@"
     }
     function _quote_arr {
-        local _idx
-        for _idx in $(seq "$#"); do
+        local _idx=1
+        while [[ $_idx -le $# ]]; do
             [[ "$_idx" -ne 1 ]] && print " "
             print $'\"'"%s"$'\"' "${!_idx}"
+            ((_idx++))
         done
     }
 
@@ -282,7 +283,7 @@ function call_retropie_packages {
     sudo "$RETROPIE_BASE_DIR"/retropie_packages.sh "$@"
 }
 
-function install_package_from_binary() {
+function install_package_from_binary {
     local _package="$1"
     local _action
     for _action in depends install_bin configure; do
@@ -290,13 +291,13 @@ function install_package_from_binary() {
     done
 }
 
-function install_package_from_source() {
+function install_package_from_source {
     local _package="$1"
     call_retropie_packages "$_package" clean || return
     call_retropie_packages "$_package" || return
 }
 
-function write_shader_preset() {
+function write_shader_preset {
     local _core_name="$1"
     local _preset="$2"
     local _base_dir="$SHADERS_PRESETS_DIR"/"$_core_name"
@@ -314,7 +315,7 @@ EOF
 
 function configure_kcmdline { # [TODO:IMPROVE]
     sudo bash <<"EOF"
-function _ensure_variable() {
+function _ensure_variable {
     local _name="$1"
     local _value="$2"
     [[ -n "$_value" ]] && _value="=$_value"
@@ -324,6 +325,7 @@ function _ensure_variable() {
         sed -e "s/$_name=\?\S*/$_name$_value/g" -i /boot/cmdline.txt || return
     fi
 }
+
 _ensure_variable "console" "tty3" || exit
 _ensure_variable "logo.nologo" || exit
 _ensure_variable "quiet" || exit
