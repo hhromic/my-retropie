@@ -255,7 +255,8 @@ function set_hostname { # adapted from raspi-config
     sudo bash <<EOF
 current_hostname=$(cat /etc/hostname | tr -d " \t\n\r")
 echo "$_hostname" > /etc/hostname || exit
-sed -i "s/127.0.1.1.*$current_hostname/127.0.1.1\t$_hostname/g" /etc/hosts || exit
+sed -e "s/127.0.1.1.*$current_hostname/127.0.1.1\t$_hostname/g" \
+    -i /etc/hosts || exit
 EOF
 }
 
@@ -317,9 +318,9 @@ function _ensure_variable() {
     local _value="$2"
     [[ -n "$_value" ]] && _value="=$_value"
     if ! tr " " "\n" < /boot/cmdline.txt | grep -q "^$_name=\?"; then
-        sed -i "s/$/ $_name$_value/g" /boot/cmdline.txt || return
+        sed -e "s/$/ $_name$_value/g" -i /boot/cmdline.txt || return
     else
-        sed -i "s/$_name=\?\S*/$_name$_value/g" /boot/cmdline.txt || return
+        sed -e "s/$_name=\?\S*/$_name$_value/g" -i /boot/cmdline.txt || return
     fi
 }
 _ensure_variable "console" "tty3" || exit
@@ -396,7 +397,7 @@ function action_configure_retropie {
     call_retropie_packages autostart enable || return
 }
 
-function action_configure_videomode { # [TODO:IMPROVE]
+function action_configure_videomode {
     local _emulator
     show_banner "Emulators Video Mode Configuration"
     :> "$VIDEO_MODES_FILE" || return
@@ -406,14 +407,14 @@ function action_configure_videomode { # [TODO:IMPROVE]
     done
 }
 
-function action_configure_shaders { # [TODO:IMPROVE]
+function action_configure_shaders {
     local _core_name
     show_banner "Retroarch Video Shaders Configuration"
 
     # enable video shader option
     show_message "Enabling video shader option in retroarch ..."
-    sed -i 's/^.*video_shader_enable.*$/video_shader_enable = true/g' \
-        "$RETROARCH_CONFIG_FILE" || return
+    sed -e 's/^.*video_shader_enable.*$/video_shader_enable = true/g' \
+        -i "$RETROARCH_CONFIG_FILE" || return
 
     # configure video shader for LCD-based cores
     for _core_name in "${LCD_CORE_NAMES[@]}"; do
