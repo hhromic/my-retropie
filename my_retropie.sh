@@ -134,8 +134,7 @@ function new_line {
 }
 
 function println {
-    local format="$1"; shift
-    print "$format" "$@" && new_line
+    print "$@" && new_line
 }
 
 function ansi_code {
@@ -186,21 +185,19 @@ function confirm() {
 }
 
 function show_banner {
-    local format="$1"; shift
     ansi_code reset && new_line &&
     ansi_code bold fg_red &&
     println "= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =" &&
-    ansi_code fg_yellow && println "$format" "$@" &&
+    ansi_code fg_yellow && println "$@" &&
     ansi_code fg_red &&
     println "= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =" &&
     ansi_code reset
 }
 
 function show_message {
-    local format="$1"; shift
     ansi_code reset && new_line &&
     ansi_code fg_cyan && print ">>> " &&
-    ansi_code bold && println "$format" "$@" && ansi_code reset
+    ansi_code bold && println "$@" && ansi_code reset
 }
 
 function show_variables {
