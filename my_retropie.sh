@@ -252,10 +252,11 @@ EOF
 
 function set_hostname { # adapted from raspi-config
     local _hostname="$1"
+    local _current_hostname
+    _current_hostname=$(tr -d $'\t'$'\n'$'\r' < /etc/hostname)
     sudo bash <<EOF
-current_hostname=$(cat /etc/hostname | tr -d " \t\n\r")
 echo "$_hostname" > /etc/hostname || exit
-sed -e "s/127.0.1.1.*$current_hostname/127.0.1.1\t$_hostname/g" \
+sed -e "s/127.0.1.1.*$_current_hostname/127.0.1.1\\t$_hostname/g" \
     -i /etc/hosts || exit
 EOF
 }
