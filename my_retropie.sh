@@ -124,9 +124,9 @@ EOF
 # Helpers
 
 function print {
-    local format="$1"; shift
+    local _format="$1"; shift
     # shellcheck disable=SC2059
-    printf "$format" "$@"
+    printf "$_format" "$@"
 }
 
 function new_line {
@@ -138,47 +138,47 @@ function println {
 }
 
 function ansi_code {
-    local token
-    local code
-    for token in "$@"; do
-        code=""
+    local _token
+    local _code
+    for _token in "$@"; do
+        _code=""
         case "$token" in
-            reset)      code="0m" ;;
-            bold)       code="1m" ;;
-            underline)  code="4m" ;;
-            blink)      code="5m" ;;
-            reverse)    code="7m" ;;
-            invisible)  code="8m" ;;
-            fg_black)   code="30m" ;;
-            fg_red)     code="31m" ;;
-            fg_green)   code="32m" ;;
-            fg_yellow)  code="33m" ;;
-            fg_blue)    code="34m" ;;
-            fg_magenta) code="35m" ;;
-            fg_cyan)    code="36m" ;;
-            fg_white)   code="37m" ;;
-            bg_black)   code="40m" ;;
-            bg_red)     code="41m" ;;
-            bg_green)   code="42m" ;;
-            bg_yellow)  code="43m" ;;
-            bg_blue)    code="44m" ;;
-            bg_magenta) code="45m" ;;
-            bg_cyan)    code="46m" ;;
-            bg_white)   code="47m" ;;
+            reset)      _code="0m" ;;
+            bold)       _code="1m" ;;
+            underline)  _code="4m" ;;
+            blink)      _code="5m" ;;
+            reverse)    _code="7m" ;;
+            invisible)  _code="8m" ;;
+            fg_black)   _code="30m" ;;
+            fg_red)     _code="31m" ;;
+            fg_green)   _code="32m" ;;
+            fg_yellow)  _code="33m" ;;
+            fg_blue)    _code="34m" ;;
+            fg_magenta) _code="35m" ;;
+            fg_cyan)    _code="36m" ;;
+            fg_white)   _code="37m" ;;
+            bg_black)   _code="40m" ;;
+            bg_red)     _code="41m" ;;
+            bg_green)   _code="42m" ;;
+            bg_yellow)  _code="43m" ;;
+            bg_blue)    _code="44m" ;;
+            bg_magenta) _code="45m" ;;
+            bg_cyan)    _code="46m" ;;
+            bg_white)   _code="47m" ;;
         esac
-        [[ -n "$code" ]] && print $'\e'"[%s" "$code"
+        [[ -n "$_code" ]] && print $'\e'"[%s" "$_code"
     done
 }
 
 function confirm() {
-    local ans
+    local _ans
     ansi_code reset && new_line && print "%s (" "$@" &&
     ansi_code fg_green && print "y" &&
     ansi_code reset && print "/" &&
     ansi_code fg_red && print "[N]" &&
     ansi_code reset && print ") "
-    read -r ans
-    case "$ans" in
+    read -r _ans
+    case "$_ans" in
         y*|Y*) return 0 ;;
         *) return 1 ;;
     esac
@@ -250,25 +250,25 @@ apt-get -y dist-upgrade
 EOF
 }
 
-function set_hostname {
-    local hostname="$1"
+function set_hostname { # adapted from raspi-config
+    local _hostname="$1"
     sudo bash <<EOF
 current_hostname=$(cat /etc/hostname | tr -d " \t\n\r")
-echo "$hostname" > /etc/hostname || exit
-sed -i "s/127.0.1.1.*$current_hostname/127.0.1.1\t$hostname/g" /etc/hosts || exit
+echo "$_hostname" > /etc/hostname || exit
+sed -i "s/127.0.1.1.*$current_hostname/127.0.1.1\t$_hostname/g" /etc/hosts || exit
 EOF
 }
 
-function set_timezone {
-    local timezone="$1"
+function set_timezone { # adapted from raspi-config
+    local _timezone="$1"
     sudo bash <<EOF
 rm -f /etc/localtime || exit
-echo "$timezone" > /etc/timezone || exit
+echo "$_timezone" > /etc/timezone || exit
 dpkg-reconfigure -f noninteractive tzdata || exit
 EOF
 }
 
-function disable_network_wait {
+function disable_network_wait { # adapted from raspi-config
     sudo bash <<"EOF"
 if [[ -f /etc/systemd/system/dhcpcd.service.d/wait.conf ]]; then
     rm -f /etc/systemd/system/dhcpcd.service.d/wait.conf || exit
@@ -281,25 +281,25 @@ function call_retropie_packages {
 }
 
 function install_package_from_binary() {
-    local package="$1"
-    local action
-    for action in depends install_bin configure; do
-        call_retropie_packages "$package" "$action" || return
+    local _package="$1"
+    local _action
+    for _action in depends install_bin configure; do
+        call_retropie_packages "$_package" "$_action" || return
     done
 }
 
 function install_package_from_source() {
-    local package="$1"
-    call_retropie_packages "$package" clean || return
-    call_retropie_packages "$package" || return
+    local _package="$1"
+    call_retropie_packages "$_package" clean || return
+    call_retropie_packages "$_package" || return
 }
 
 function write_shader_preset() {
-    local core_name="$1"
-    local preset="$2"
-    local base_dir="$SHADERS_PRESETS_DIR"/"$core_name"
-    mkdir -p "$base_dir" || return
-    echo "$preset" > "$base_dir"/"$core_name".glslp || return
+    local _core_name="$1"
+    local _preset="$2"
+    local _base_dir="$SHADERS_PRESETS_DIR"/"$core_name"
+    mkdir -p "$_base_dir" || return
+    echo "$_preset" > "$_base_dir"/"$_core_name".glslp || return
 }
 
 function disable_splash {
@@ -313,13 +313,13 @@ EOF
 function configure_kcmdline { # [TODO:IMPROVE]
     sudo bash <<"EOF"
 function _ensure_variable() {
-    local name="$1"
-    local value="$2"
-    [[ -n "$value" ]] && value="=$value"
-    if ! tr " " "\n" < /boot/cmdline.txt | grep -q "^$name=\?"; then
-        sed -i "s/$/ $name$value/g" /boot/cmdline.txt || return
+    local _name="$1"
+    local _value="$2"
+    [[ -n "$_value" ]] && _value="=$_value"
+    if ! tr " " "\n" < /boot/cmdline.txt | grep -q "^$_name=\?"; then
+        sed -i "s/$/ $_name$_value/g" /boot/cmdline.txt || return
     else
-        sed -i "s/$name=\?\S*/$name$value/g" /boot/cmdline.txt || return
+        sed -i "s/$_name=\?\S*/$_name$_value/g" /boot/cmdline.txt || return
     fi
 }
 _ensure_variable "console" "tty3" || exit
@@ -363,19 +363,19 @@ function action_retropie_setup {
 }
 
 function action_install_packages {
-    local package
+    local _package
     show_banner "RetroPie Packages Installation"
 
     # install packages from binary
-    for package in "${PACKAGES_BINARY[@]}"; do
-        show_message "Installing '%s' package from binary ..." "$package"
-        install_package_from_binary "$package" || return
+    for _package in "${PACKAGES_BINARY[@]}"; do
+        show_message "Installing '%s' package from binary ..." "$_package"
+        install_package_from_binary "$_package" || return
     done
 
     # install packages from source
-    for package in "${PACKAGES_SOURCE[@]}"; do
-        show_message "Installing '%s' package from source ..." "$package"
-        install_package_from_source "$package" || return
+    for _package in "${PACKAGES_SOURCE[@]}"; do
+        show_message "Installing '%s' package from source ..." "$_package"
+        install_package_from_source "$_package" || return
     done
 }
 
@@ -397,17 +397,17 @@ function action_configure_retropie {
 }
 
 function action_configure_videomode { # [TODO:IMPROVE]
-    local emulator
+    local _emulator
     show_banner "Emulators Video Mode Configuration"
     :> "$VIDEO_MODES_FILE" || return
-    for emulator in "${VIDEO_MODE_EMULATORS[@]}"; do
-        show_message "Configuring '%s' emulator ..." "$emulator"
-        echo "$emulator = \"$VIDEO_MODE\"" >> "$VIDEO_MODES_FILE" || return
+    for _emulator in "${VIDEO_MODE_EMULATORS[@]}"; do
+        show_message "Configuring '%s' emulator ..." "$_emulator"
+        echo "$_emulator = \"$VIDEO_MODE\"" >> "$VIDEO_MODES_FILE" || return
     done
 }
 
 function action_configure_shaders { # [TODO:IMPROVE]
-    local core_name
+    local _core_name
     show_banner "Retroarch Video Shaders Configuration"
 
     # enable video shader option
@@ -416,15 +416,15 @@ function action_configure_shaders { # [TODO:IMPROVE]
         "$RETROARCH_CONFIG_FILE" || return
 
     # configure video shader for LCD-based cores
-    for core_name in "${LCD_CORE_NAMES[@]}"; do
-        show_message "Configuring LCD-based libretro core '%s' ..." "$core_name"
-        write_shader_preset "$core_name" "$LCD_SHADER_PRESET" || return
+    for _core_name in "${LCD_CORE_NAMES[@]}"; do
+        show_message "Configuring libretro core '%s' for LCD ..." "$_core_name"
+        write_shader_preset "$_core_name" "$LCD_SHADER_PRESET" || return
     done
 
     # configure video shader for CRT-based cores
-    for core_name in "${CRT_CORE_NAMES[@]}"; do
-        show_message "Configuring CRT-based libretro core '%s' ..." "$core_name"
-        write_shader_preset "$core_name" "$CRT_SHADER_PRESET" || return
+    for _core_name in "${CRT_CORE_NAMES[@]}"; do
+        show_message "Configuring libretro core '%s' for CRT ..." "$_core_name"
+        write_shader_preset "$_core_name" "$CRT_SHADER_PRESET" || return
     done
 }
 
