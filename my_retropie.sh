@@ -313,25 +313,29 @@ fi
 EOF
 }
 
-function configure_kcmdline { # [TODO:IMPROVE]
+function configure_kcmdline {
     sudo bash <<"EOF"
-function _ensure_variable {
-    local _name="$1"
-    local _value="$2"
+function _set_var {
+    local _name="$1"; local _value="$2"
+    local _idx=0; local _found
     [[ -n "$_value" ]] && _value="=$_value"
-    if ! tr " " "\n" < /boot/cmdline.txt | grep -q "^$_name=\?"; then
-        sed -e "s/$/ $_name$_value/g" -i /boot/cmdline.txt || return
-    else
-        sed -e "s/$_name=\?\S*/$_name$_value/g" -i /boot/cmdline.txt || return
-    fi
+    while [[ $_idx -lt ${#CMDLINE[@]} ]]; do
+        if [[ "${CMDLINE[$_idx]}" =~ ^$_name(=|$) ]]; then
+            CMDLINE[$_idx]="$_name$_value"
+            _found=yes
+        fi
+        ((_idx++))
+    done
+    [[ -z "$_found" ]] && CMDLINE[$_idx]="$_name$_value"
 }
-
-_ensure_variable "console" "tty3" || exit
-_ensure_variable "logo.nologo" || exit
-_ensure_variable "quiet" || exit
-_ensure_variable "loglevel" "3" || exit
-_ensure_variable "vt.global_cursor_default" "0" || exit
-_ensure_variable "plymouth.enable" "0" || exit
+mapfile -t CMDLINE < <(tr " " $'\n' < /boot/cmdline.txt | sort -u)
+_set_var "console" "tty3"
+_set_var "logo.nologo"
+_set_var "quiet"
+_set_var "loglevel" "3"
+_set_var "vt.global_cursor_default" "0"
+_set_var "plymouth.enable" "0"
+tr " " $'\n' <<< "${CMDLINE[@]}" | sort -u | xargs > /boot/cmdline.txt
 EOF
 }
 
