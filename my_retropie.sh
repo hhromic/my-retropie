@@ -27,13 +27,19 @@
 : "${SHADERS_PRESETS_DIR:=$SHADERS_BASE_DIR/presets}"
 
 #===============================================================================
-# Configuration
-
-# RetroPie git repository URL
-: "${RETROPIE_REPOSITORY:=https://github.com/RetroPie/RetroPie-Setup}"
+# Raspbian Configuration
 
 # device hostname
 : "${DEVICE_HOSTNAME:=retropie}"
+
+# device timezone [TODO]
+: "${DEVICE_TIMEZONE:=Etc/UTC}"
+
+#===============================================================================
+# RetroPie Configuration
+
+# RetroPie git repository URL
+: "${RETROPIE_REPOSITORY:=https://github.com/RetroPie/RetroPie-Setup}"
 
 # packages to be installed from binary
 [[ -z $PACKAGES_BINARY ]] &&
@@ -146,123 +152,83 @@ function ansi_code {
             bg_cyan)    code="46m" ;;
             bg_white)   code="47m" ;;
         esac
-        [[ -n "$code" ]] && echo -n -e "\\033[$code"
+        [[ -n "$code" ]] && echo -n -e $'\e'"[$code"
     done
 }
 
 function show_banner {
-    ansi_code reset
-    echo
+    local format="$1"; shift
+    ansi_code reset; echo
     ansi_code bold fg_red
     echo "= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = ="
-    ansi_code fg_yellow; echo "$@"
+    ansi_code fg_yellow
+    # shellcheck disable=SC2059
+    printf "$format"$'\n' "$@"
     ansi_code fg_red
     echo "= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = ="
     ansi_code reset
 }
 
 function show_message {
-    ansi_code reset
-    echo
+    local format="$1"; shift
+    ansi_code reset; echo
     ansi_code fg_cyan; echo -n ">>> "
-    ansi_code bold; echo "$@"
+    ansi_code bold
+    # shellcheck disable=SC2059
+    printf "$format"$'\n' "$@"
     ansi_code reset
 }
 
 function show_variables {
-    local element
-    show_message "Files and directories"
-    echo
+    function _show_var {
+        local _label="$1"; shift
+        ansi_code reset
+        ansi_code fg_magenta; echo -n "$_label"
+        ansi_code bold; echo -n " = "
+        ansi_code reset; echo "$@"
+    }
+    function _quote_arr {
+        local idx
+        for idx in $(seq "$#"); do
+            [[ "$idx" -ne 1 ]] && echo -n " "
+            echo -n "\"${!idx}\""
+        done
+    }
 
-    ansi_code fg_magenta; echo -n "RETROPIE_BASE_DIR     "
-    ansi_code bold; echo -n "= "
-    ansi_code reset; echo "$RETROPIE_BASE_DIR"
+    show_message "Files and directories"; echo
+    _show_var "RETROPIE_BASE_DIR    " "$RETROPIE_BASE_DIR"
+    _show_var "CONFIGS_BASE_DIR     " "$CONFIGS_BASE_DIR"
+    _show_var "VIDEO_MODES_FILE     " "$VIDEO_MODES_FILE"
+    _show_var "RETROARCH_CONFIG_FILE" "$RETROARCH_CONFIG_FILE"
+    _show_var "SHADERS_BASE_DIR     " "$SHADERS_BASE_DIR"
+    _show_var "SHADERS_DIR          " "$SHADERS_DIR"
+    _show_var "SHADERS_PRESETS_DIR  " "$SHADERS_PRESETS_DIR"
 
-    ansi_code fg_magenta; echo -n "CONFIGS_BASE_DIR      "
-    ansi_code bold; echo -n "= "
-    ansi_code reset; echo "$CONFIGS_BASE_DIR"
+    show_message "Raspbian Configuration"; echo
+    _show_var "DEVICE_HOSTNAME      " "$DEVICE_HOSTNAME"
+    _show_var "DEVICE_TIMEZONE      " "$DEVICE_TIMEZONE"
 
-    ansi_code fg_magenta; echo -n "VIDEO_MODES_FILE      "
-    ansi_code bold; echo -n "= "
-    ansi_code reset; echo "$VIDEO_MODES_FILE"
-
-    ansi_code fg_magenta; echo -n "RETROARCH_CONFIG_FILE "
-    ansi_code bold; echo -n "= "
-    ansi_code reset; echo "$RETROARCH_CONFIG_FILE"
-
-    ansi_code fg_magenta; echo -n "SHADERS_BASE_DIR      "
-    ansi_code bold; echo -n "= "
-    ansi_code reset; echo "$SHADERS_BASE_DIR"
-
-    ansi_code fg_magenta; echo -n "SHADERS_DIR           "
-    ansi_code bold; echo -n "= "
-    ansi_code reset; echo "$SHADERS_DIR"
-
-    ansi_code fg_magenta; echo -n "SHADERS_PRESETS_DIR   "
-    ansi_code bold; echo -n "= "
-    ansi_code reset; echo "$SHADERS_PRESETS_DIR"
-
-    show_message "Configuration"
-    echo
-
-    ansi_code fg_magenta; echo -n "RETROPIE_REPOSITORY   "
-    ansi_code bold; echo -n "= "
-    ansi_code reset; echo "$RETROPIE_REPOSITORY"
-
-    ansi_code fg_magenta; echo -n "DEVICE_HOSTNAME       "
-    ansi_code bold; echo -n "= "
-    ansi_code reset; echo "$DEVICE_HOSTNAME"
-
-    ansi_code fg_magenta; echo -n "PACKAGES_BINARY       "
-    ansi_code bold; echo -n "= "
-    ansi_code reset; echo "${PACKAGES_BINARY[@]}"
-
-    ansi_code fg_magenta; echo -n "PACKAGES_SOURCE       "
-    ansi_code bold; echo -n "= "
-    ansi_code reset; echo "${PACKAGES_SOURCE[@]}"
-
-    ansi_code fg_magenta; echo -n "VIDEO_MODE            "
-    ansi_code bold; echo -n "= "
-    ansi_code reset; echo "$VIDEO_MODE"
-
-    ansi_code fg_magenta; echo -n "VIDEO_MODE_EMULATORS  "
-    ansi_code bold; echo -n "= "
-    ansi_code reset; echo "${VIDEO_MODE_EMULATORS[@]}"
-
-    ansi_code fg_magenta; echo -n "LCD_CORE_NAMES        "
-    ansi_code bold; echo -n "="
-    ansi_code reset
-    for element in "${LCD_CORE_NAMES[@]}"; do
-        echo -n " \"$element\""
-    done
-    echo
-
-    ansi_code fg_magenta; echo -n "LCD_SHADER_PRESET     "
-    ansi_code bold; echo "= "
-    ansi_code reset; echo "$LCD_SHADER_PRESET"
-
-    ansi_code fg_magenta; echo -n "CRT_CORE_NAMES        "
-    ansi_code bold; echo -n "="
-    ansi_code reset
-    for element in "${CRT_CORE_NAMES[@]}"; do
-        echo -n " \"$element\""
-    done
-    echo
-
-    ansi_code fg_magenta; echo -n "CRT_SHADER_PRESET     "
-    ansi_code bold; echo "= "
-    ansi_code reset; echo "$CRT_SHADER_PRESET"
+    show_message "RetroPie Configuration"; echo
+    _show_var "RETROPIE_REPOSITORY  " "$RETROPIE_REPOSITORY"
+    _show_var "PACKAGES_BINARY      " "${PACKAGES_BINARY[@]}"
+    _show_var "PACKAGES_SOURCE      " "${PACKAGES_SOURCE[@]}"
+    _show_var "VIDEO_MODE           " "$VIDEO_MODE"
+    _show_var "VIDEO_MODE_EMULATORS " "${VIDEO_MODE_EMULATORS[@]}"
+    _show_var "LCD_CORE_NAMES       " "$(_quote_arr "${LCD_CORE_NAMES[@]}")"
+    _show_var "LCD_SHADER_PRESET    " $'\n'"$LCD_SHADER_PRESET"
+    _show_var "CRT_CORE_NAMES       " "$(_quote_arr "${CRT_CORE_NAMES[@]}")"
+    _show_var "CRT_SHADER_PRESET    " $'\n'"$CRT_SHADER_PRESET"
 }
 
 function confirm() {
     local ans
     ansi_code reset
     echo
-    echo -n "$@" "["
+    echo -n "$@" "("
     ansi_code fg_green; echo -n "y"
-    ansi_code reset; echo -n "/"
+    ansi_code reset; echo -n "/["
     ansi_code fg_red; echo -n "N"
-    ansi_code reset; echo -n "] "
+    ansi_code reset; echo -n "]) "
     read -r ans
     case "$ans" in
         y*|Y*) return 0 ;;
@@ -273,28 +239,53 @@ function confirm() {
 #===============================================================================
 # Actions helpers
 
+function update_raspbian {
+    sudo bash <<"EOF"
+apt-get -y update
+apt-get -y dist-upgrade
+EOF
+}
+
+function set_hostname {
+    local hostname="$1"
+    sudo bash <<EOF
+echo "$hostname" > /etc/hostname || exit
+sed -i "s/raspberrypi/$hostname/g" /etc/hosts
+EOF
+}
+
+function set_timezone { # [TEST]
+    local timezone="$1"
+    sudo bash <<EOF
+echo "$timezone" > /etc/timezone || exit
+dpkg-reconfigure -f noninteractive tzdata
+EOF
+}
+
+function disable_network_wait {
+    sudo bash <<"EOF"
+if [[ -f /etc/systemd/system/dhcpcd.service.d/wait.conf ]]; then
+    rm -f /etc/systemd/system/dhcpcd.service.d/wait.conf || exit
+fi
+EOF
+}
+
 function call_retropie_packages {
     sudo "$RETROPIE_BASE_DIR"/retropie_packages.sh "$@"
 }
 
-function install_packages_from_binary() {
-    local package
+function install_package_from_binary() {
+    local package="$1"
     local action
-    for package in "${PACKAGES_BINARY[@]}"; do
-        show_message "Installing package from binary: $package"
-        for action in depends install_bin configure; do
-            call_retropie_packages "$package" "$action" || return
-        done
+    for action in depends install_bin configure; do
+        call_retropie_packages "$package" "$action" || return
     done
 }
 
-function install_packages_from_source() {
-    local package
-    for package in "${PACKAGES_SOURCE[@]}"; do
-        show_message "Installing package from source: $package"
-        call_retropie_packages "$package" clean || return
-        call_retropie_packages "$package" || return
-    done
+function install_package_from_source() {
+    local package="$1"
+    call_retropie_packages "$package" clean || return
+    call_retropie_packages "$package" || return
 }
 
 function write_shader_preset() {
@@ -305,40 +296,81 @@ function write_shader_preset() {
     echo "$preset" > "$base_dir"/"$core_name".glslp || return
 }
 
+function disable_splash {
+    sudo bash <<"EOF"
+if ! grep -q "^disable_splash=" /boot/config.txt 2>/dev/null; then
+    echo "disable_splash=1" >> /boot/config.txt || exit
+fi
+EOF
+}
+
+function configure_kcmdline {
+    sudo bash <<"EOF"
+function _ensure_variable() {
+    local name="$1"
+    local value="$2"
+    [[ -n "$value" ]] && value="=$value"
+    if ! tr " " "\n" < /boot/cmdline.txt | grep -q "^$name=\?"; then
+        sed -i "s/$/ $name$value/g" /boot/cmdline.txt || return
+    else
+        sed -i "s/$name=\?\S*/$name$value/g" /boot/cmdline.txt || return
+    fi
+}
+_ensure_variable "console" "tty3" || exit
+_ensure_variable "logo.nologo" || exit
+_ensure_variable "quiet" || exit
+_ensure_variable "loglevel" "3" || exit
+_ensure_variable "vt.global_cursor_default" "0" || exit
+_ensure_variable "plymouth.enable" "0" || exit
+EOF
+}
+
 #===============================================================================
 # Actions
 
-function action_initial_setup {
-    show_banner "Initial RetroPie Setup"
+function action_raspbian_setup {
+    show_banner "Raspbian Setup"
+
+    # update raspbian
+    show_message "Updating Raspbian ..."
+    update_raspbian || return
 
     # configure device hostname
-    show_message "Configuring device hostname ..."
-    sudo bash <<EOF || return
-echo "$DEVICE_HOSTNAME" > /etc/hostname || exit
-sed -i "s/raspberrypi/$DEVICE_HOSTNAME/g" /etc/hosts
-EOF
+    show_message "Configuring device hostname to '%s' ..." "$DEVICE_HOSTNAME"
+    set_hostname "$DEVICE_HOSTNAME" || return
+
+    # configure device timezone
+    show_message "Configuring device timezone to '%s' ..." "$DEVICE_TIMEZONE"
+    set_timezone "$DEVICE_TIMEZONE" || return
 
     # disable network wait during boot
     show_message "Disabling network wait during boot ..."
-    sudo bash <<"EOF" || return
-if [[ -f /etc/systemd/system/dhcpcd.service.d/wait.conf ]]; then
-    rm -f /etc/systemd/system/dhcpcd.service.d/wait.conf || exit
-fi
-EOF
+    disable_network_wait || return
+}
 
-    # clone latest RetroPie-Setup repository
-    show_message "Cloning latest Retropie-Setup repository ..."
+function action_retropie_setup {
+    show_banner "RetroPie Setup"
+
+    # clone RetroPie-Setup repository
+    show_message "Cloning Retropie-Setup into '%s' ..." "$RETROPIE_BASE_DIR"
     git clone "$RETROPIE_REPOSITORY" "$RETROPIE_BASE_DIR" || return
 }
 
 function action_install_packages {
+    local package
     show_banner "RetroPie Packages Installation"
 
     # install packages from binary
-    install_packages_from_binary || return
+    for package in "${PACKAGES_BINARY[@]}"; do
+        show_message "Installing '%s' package from binary ..." "$package"
+        install_package_from_binary "$package" || return
+    done
 
     # install packages from source
-    install_packages_from_source || return
+    for package in "${PACKAGES_SOURCE[@]}"; do
+        show_message "Installing '%s' package from source ..." "$package"
+        install_package_from_source "$package" || return
+    done
 }
 
 function action_configure_retropie {
@@ -363,7 +395,7 @@ function action_configure_videomode {
     show_banner "Emulators Video Mode Configuration"
     :> "$VIDEO_MODES_FILE" || return
     for emulator in "${VIDEO_MODE_EMULATORS[@]}"; do
-        show_message "Configuring emulator: $emulator"
+        show_message "Configuring '%s' emulator ..." "$emulator"
         echo "$emulator = \"$VIDEO_MODE\"" >> "$VIDEO_MODES_FILE" || return
     done
 }
@@ -379,14 +411,14 @@ function action_configure_shaders {
 
     # configure video shader for LCD-based cores
     for core_name in "${LCD_CORE_NAMES[@]}"; do
-        show_message "Configuring LCD-based libretro core name: $core_name"
+        show_message "Configuring LCD-based libretro core '%s' ..." "$core_name"
         write_shader_preset "$core_name" "$LCD_SHADER_PRESET" || return
     done
 
     # configure video shader for CRT-based cores
     for core_name in "${CRT_CORE_NAMES[@]}"; do
-        show_message "Configuring CRT-based libretro core name: $core_name"
-        writer_shader_preset "$core_name" "$CRT_SHADER_PRESET" || return
+        show_message "Configuring CRT-based libretro core '%s' ..." "$core_name"
+        write_shader_preset "$core_name" "$CRT_SHADER_PRESET" || return
     done
 }
 
@@ -399,32 +431,11 @@ function action_configure_quietmode {
 
     # disable boot rainbow splash screen
     show_message "Disabling boot rainbow splash screen ..."
-    sudo bash <<"EOF" || return
-if ! grep -q "^disable_splash=" /boot/config.txt 2>/dev/null; then
-    echo "disable_splash=1" >> /boot/config.txt || exit
-fi
-EOF
+    disable_splash || return
 
     # configure kernel cmdline for quiet boot
     show_message "Configuring kernel cmdline ..."
-    sudo bash <<"EOF" || return
-function ensure_variable() {
-    local name="$1"
-    local value="$2"
-    [[ -n "$value" ]] && value="=$value"
-    if ! tr " " "\n" < /boot/cmdline.txt | grep -q "^$name=\?"; then
-        sed -i "s/$/ $name$value/g" /boot/cmdline.txt || return
-    else
-        sed -i "s/$name=\?\S*/$name$value/g" /boot/cmdline.txt || return
-    fi
-}
-ensure_variable "console" "tty3" || exit
-ensure_variable "logo.nologo" || exit
-ensure_variable "quiet" || exit
-ensure_variable "loglevel" "3" || exit
-ensure_variable "vt.global_cursor_default" "0" || exit
-ensure_variable "plymouth.enable" "0" || exit
-EOF
+    configure_kcmdline
 }
 
 #===============================================================================
@@ -440,9 +451,10 @@ case "$1" in
         action_install_packages || exit
         ;;
     *)
-        show_message "Action: INITIAL SETUP"
+        show_message "Action: COMPLETE SETUP"
         confirm "Continue?" || exit
-        action_initial_setup || exit
+        action_raspbian_setup || exit
+        action_retropie_setup || exit
         action_install_packages || exit
         action_configure_retropie || exit
         action_configure_videomode || exit
