@@ -279,7 +279,7 @@ fi
 EOF
 }
 
-function call_retropie_packages {
+function run_retropie_packages {
     sudo "$RETROPIE_BASE_DIR"/retropie_packages.sh "$@"
 }
 
@@ -287,14 +287,14 @@ function install_package_from_binary {
     local _package="$1"
     local _action
     for _action in depends install_bin configure; do
-        call_retropie_packages "$_package" "$_action" || return
+        run_retropie_packages "$_package" "$_action" || return
     done
 }
 
 function install_package_from_source {
     local _package="$1"
-    call_retropie_packages "$_package" clean || return
-    call_retropie_packages "$_package" || return
+    run_retropie_packages "$_package" clean || return
+    run_retropie_packages "$_package" || return
 }
 
 function write_shader_preset {
@@ -398,16 +398,16 @@ function action_configure_retropie {
 
     # get bluetooth depends
     show_message "Getting bluetooth depends ..."
-    call_retropie_packages bluetooth depends || return
+    run_retropie_packages bluetooth depends || return
 
     # enable splashscreen
     show_message "Enabling splashscreen ..."
-    call_retropie_packages splashscreen default || return
-    call_retropie_packages splashscreen enable || return
+    run_retropie_packages splashscreen default || return
+    run_retropie_packages splashscreen enable || return
 
     # enable autostart
     show_message "Enabling autostart ..."
-    call_retropie_packages autostart enable || return
+    run_retropie_packages autostart enable || return
 }
 
 function action_configure_videomode {
