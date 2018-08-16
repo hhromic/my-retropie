@@ -339,6 +339,12 @@ tr " " $'\n' <<< "${CMDLINE[@]}" | sort -u | xargs > /boot/cmdline.txt
 EOF
 }
 
+function clean_apt {
+    sudo bash <<"EOF"
+apt-get -y clean
+EOF
+}
+
 #===============================================================================
 # Actions
 
@@ -452,6 +458,14 @@ function action_configure_quietmode {
     configure_kcmdline || return
 }
 
+function action_clean {
+    show_banner "System Clean"
+
+    # clean the APT system
+    show_message "Cleaning local APT package files repository ..."
+    clean_apt || return
+}
+
 #===============================================================================
 # Action dispatcher
 
@@ -463,6 +477,7 @@ case "$1" in
         show_message "Action: UPDATE PACKAGES"
         confirm "Continue?" || exit
         action_install_packages || exit
+        action_clean || exit
         ;;
     *)
         show_message "Action: COMPLETE SETUP"
@@ -474,6 +489,7 @@ case "$1" in
         action_configure_videomode || exit
         action_configure_shaders || exit
         action_configure_quietmode || exit
+        action_clean || exit
         ;;
 esac
 
