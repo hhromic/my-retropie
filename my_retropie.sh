@@ -273,7 +273,7 @@ function _set_var {
     done
     [[ -z "$_found" ]] && CMDLINE[$_idx]="$_name$_value"
 }
-mapfile -t CMDLINE < <(tr " " $'\n' < /boot/cmdline.txt | sort -u)
+mapfile -t CMDLINE < <(tr " " $'\n' < /boot/cmdline.txt)
 _set_var "console" "tty3"
 _set_var "logo.nologo"
 _set_var "quiet"
