@@ -18,7 +18,7 @@ All the instructions below are meant to be run as the normal user `pi`.
 
        sudo apt-get install ca-certificates git curl
 
-6. Start the automated installation script:
+6. Start the personal installation script:
 
-       bash <(curl -sL https://git.io/fNFAV)
+       bash <(curl -sL https://git.io/fAeSi)
 
