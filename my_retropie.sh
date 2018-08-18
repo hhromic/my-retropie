@@ -244,7 +244,7 @@ function show_variables {
 #===============================================================================
 # Actions helpers
 
-function update_raspbian {
+function update_apt_packages {
     sudo bash <<"EOF"
 apt-get -y update
 apt-get -y dist-upgrade
@@ -348,12 +348,16 @@ EOF
 #===============================================================================
 # Actions
 
+function action_raspbian_update {
+    show_banner "Raspbian Update"
+
+    # update apt packages
+    show_message "Updating APT packages ..."
+    update_apt_packages || return
+}
+
 function action_raspbian_setup {
     show_banner "Raspbian Setup"
-
-    # update raspbian
-    show_message "Updating Raspbian ..."
-    update_raspbian || return
 
     # configure device hostname
     show_message "Configuring device hostname to '%s' ..." "$DEVICE_HOSTNAME"
@@ -476,12 +480,14 @@ case "$1" in
     update)
         show_message "Action: UPDATE PACKAGES"
         confirm "Continue?" || exit
+        action_raspbian_update || exit
         action_install_packages || exit
         action_clean || exit
         ;;
     *)
         show_message "Action: COMPLETE SETUP"
         confirm "Continue?" || exit
+        action_raspbian_update || exit
         action_raspbian_setup || exit
         action_retropie_setup || exit
         action_install_packages || exit
