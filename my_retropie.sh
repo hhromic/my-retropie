@@ -475,7 +475,7 @@ function my_retropie_start {
     show_variables
     case "$1" in
         upgrade)
-            show_message "Action: UPDATE PACKAGES"
+            show_message "Action: UPGRADE INSTALLATION"
             confirm "Continue?" || return
             action_raspbian_update || return
             action_install_packages || return
