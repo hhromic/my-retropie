@@ -6,7 +6,7 @@
 # Files and directories
 
 # RetroPie base directory
-RETROPIE_BASE_DIR=/RetroPie-Setup
+RETROPIE_BASE_DIR=$HOME/RetroPie-Setup
 
 # config files base directory
 CONFIGS_BASE_DIR=/opt/retropie/configs
