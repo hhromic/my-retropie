@@ -6,25 +6,25 @@
 # Files and directories
 
 # RetroPie base directory
-: "${RETROPIE_BASE_DIR:=$HOME/RetroPie-Setup}"
+RETROPIE_BASE_DIR=/RetroPie-Setup
 
 # config files base directory
-: "${CONFIGS_BASE_DIR:=/opt/retropie/configs}"
+CONFIGS_BASE_DIR=/opt/retropie/configs
 
 # video modes config file
-: "${VIDEO_MODES_FILE:=$CONFIGS_BASE_DIR/all/videomodes.cfg}"
+VIDEO_MODES_FILE=$CONFIGS_BASE_DIR/all/videomodes.cfg
 
 # retroarch config file
-: "${RETROARCH_CONFIG_FILE:=$CONFIGS_BASE_DIR/all/retroarch.cfg}"
+RETROARCH_CONFIG_FILE=$CONFIGS_BASE_DIR/all/retroarch.cfg
 
 # shaders base directory
-: "${SHADERS_BASE_DIR:=$CONFIGS_BASE_DIR/all/retroarch/shaders}"
+SHADERS_BASE_DIR=$CONFIGS_BASE_DIR/all/retroarch/shaders
 
 # shaders directory
-: "${SHADERS_DIR:=$SHADERS_BASE_DIR/shaders}"
+SHADERS_DIR=$SHADERS_BASE_DIR/shaders
 
 # shaders presets directory
-: "${SHADERS_PRESETS_DIR:=$SHADERS_BASE_DIR/presets}"
+SHADERS_PRESETS_DIR=$SHADERS_BASE_DIR/presets
 
 #===============================================================================
 # Raspbian Configuration
@@ -39,31 +39,79 @@
 # RetroPie Configuration
 
 # RetroPie git repository URL
-: "${RETROPIE_REPOSITORY:=https://github.com/RetroPie/RetroPie-Setup}"
+RETROPIE_REPOSITORY=https://github.com/RetroPie/RetroPie-Setup
 
 # packages to be installed from binary
-[[ -z $PACKAGES_BINARY ]] && PACKAGES_BINARY=()
+PACKAGES_BINARY=(
+    "retroarch"
+    "emulationstation"
+    "runcommand"
+    "splashscreen"
+)
 
 # packages to be installed from source
-[[ -z $PACKAGES_SOURCE ]] && PACKAGES_SOURCE=()
+PACKAGES_SOURCE=(
+    "lr-genesis-plus-gx"
+    "lr-mgba"
+    "lr-mupen64plus"
+    "lr-nestopia"
+    "lr-pcsx-rearmed"
+    "lr-snes9x"
+)
 
 # default emulators video mode
-: "${VIDEO_MODE:=CEA-4}"
+VIDEO_MODE=CEA-4
 
 # emulators to set default video mode for
-[[ -z $VIDEO_MODE_EMULATORS ]] && VIDEO_MODE_EMULATORS=()
+VIDEO_MODE_EMULATORS=("${PACKAGES_SOURCE[@]}")
 
 # LCD-based libretro cores
-[[ -z $LCD_CORE_NAMES ]] && LCD_CORE_NAMES=()
+LCD_CORE_NAMES=(
+    "mGBA"
+)
 
 # LCD-based shader preset
-[[ -z $LCD_SHADER_PRESET ]] && LCD_SHADER_PRESET=""
+read -r -d "" LCD_SHADER_PRESET <<EOF
+shaders = "1"
+shader0 = "$SHADERS_DIR/zfast_lcd_standard.glsl"
+filter_linear0 = "true"
+wrap_mode0 = "clamp_to_border"
+mipmap_input0 = "false"
+alias0 = ""
+float_framebuffer0 = "false"
+srgb_framebuffer0 = "false"
+parameters = "BORDERMULT;GBAGAMMA"
+BORDERMULT = "3.000000"
+GBAGAMMA = "1.000000"
+EOF
 
 # CRT-based libretro cores
-[[ -z $CRT_CORE_NAMES ]] && CRT_CORE_NAMES=()
+CRT_CORE_NAMES=(
+    "Genesis Plus GX"
+    "Nestopia"
+    "Mupen64Plus GLES2"
+    "PCSX-ReARMed"
+    "Snes9x"
+)
 
 # CRT-based shader preset
-[[ -z $CRT_SHADER_PRESET ]] && CRT_SHADER_PRESET=""
+read -r -d "" CRT_SHADER_PRESET <<EOF
+shaders = "1"
+shader0 = "$SHADERS_DIR/zfast_crt_standard.glsl"
+filter_linear0 = "true"
+wrap_mode0 = "clamp_to_border"
+mipmap_input0 = "false"
+alias0 = ""
+float_framebuffer0 = "false"
+srgb_framebuffer0 = "false"
+parameters = "BLURSCALEX;LOWLUMSCAN;HILUMSCAN;BRIGHTBOOST;MASK_DARK;MASK_FADE"
+BLURSCALEX = "0.300000"
+LOWLUMSCAN = "6.000000"
+HILUMSCAN = "8.000000"
+BRIGHTBOOST = "1.250000"
+MASK_DARK = "0.250000"
+MASK_FADE = "0.800000"
+EOF
 
 #===============================================================================
 # Helpers
@@ -418,30 +466,30 @@ function action_clean {
 #===============================================================================
 # Action dispatcher
 
-show_banner "Welcome to MyRetroPie !"
-show_variables
-
-case "$1" in
-    update)
-        show_message "Action: UPDATE PACKAGES"
-        confirm "Continue?" || exit
-        action_raspbian_update || exit
-        action_install_packages || exit
-        action_clean || exit
-        ;;
-    *)
-        show_message "Action: COMPLETE SETUP"
-        confirm "Continue?" || exit
-        action_raspbian_update || exit
-        action_raspbian_setup || exit
-        action_retropie_setup || exit
-        action_install_packages || exit
-        action_configure_retropie || exit
-        action_configure_videomode || exit
-        action_configure_shaders || exit
-        action_configure_quietmode || exit
-        action_clean || exit
-        ;;
-esac
-
-show_banner "MyRetroPie finished !" && new_line
+function my_retropie_start {
+    show_banner "Welcome to MyRetroPie !"
+    show_variables
+    case "$1" in
+        upgrade)
+            show_message "Action: UPDATE PACKAGES"
+            confirm "Continue?" || return
+            action_raspbian_update || return
+            action_install_packages || return
+            action_clean || return
+            ;;
+        *)
+            show_message "Action: COMPLETE SETUP"
+            confirm "Continue?" || return
+            action_raspbian_update || return
+            action_raspbian_setup || return
+            action_retropie_setup || return
+            action_install_packages || return
+            action_configure_retropie || return
+            action_configure_videomode || return
+            action_configure_shaders || return
+            action_configure_quietmode || return
+            action_clean || return
+            ;;
+    esac
+    show_banner "MyRetroPie finished !" && new_line
+}
