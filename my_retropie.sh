@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Automated management script for my personal RetroPie installation.
+# Automated management script for custom RetroPie installations.
 # script by github.com/hhromic
 
 #===============================================================================
@@ -42,83 +42,28 @@
 : "${RETROPIE_REPOSITORY:=https://github.com/RetroPie/RetroPie-Setup}"
 
 # packages to be installed from binary
-[[ -z $PACKAGES_BINARY ]] &&
-PACKAGES_BINARY=(
-    "retroarch"
-    "emulationstation"
-    "runcommand"
-    "splashscreen"
-)
+[[ -z $PACKAGES_BINARY ]] && PACKAGES_BINARY=()
 
 # packages to be installed from source
-[[ -z $PACKAGES_SOURCE ]] &&
-PACKAGES_SOURCE=(
-    "lr-genesis-plus-gx"
-    "lr-mgba"
-    "lr-mupen64plus"
-    "lr-nestopia"
-    "lr-pcsx-rearmed"
-    "lr-snes9x"
-)
+[[ -z $PACKAGES_SOURCE ]] && PACKAGES_SOURCE=()
 
 # default emulators video mode
 : "${VIDEO_MODE:=CEA-4}"
 
 # emulators to set default video mode for
-[[ -z $VIDEO_MODE_EMULATORS ]] &&
-VIDEO_MODE_EMULATORS=("${PACKAGES_SOURCE[@]}")
+[[ -z $VIDEO_MODE_EMULATORS ]] && VIDEO_MODE_EMULATORS=()
 
 # LCD-based libretro cores
-[[ -z $LCD_CORE_NAMES ]] &&
-LCD_CORE_NAMES=(
-    "mGBA"
-)
+[[ -z $LCD_CORE_NAMES ]] && LCD_CORE_NAMES=()
 
 # LCD-based shader preset
-[[ -z $LCD_SHADER_PRESET ]] &&
-read -r -d "" LCD_SHADER_PRESET <<EOF
-shaders = "1"
-shader0 = "$SHADERS_DIR/zfast_lcd_standard.glsl"
-filter_linear0 = "true"
-wrap_mode0 = "clamp_to_border"
-mipmap_input0 = "false"
-alias0 = ""
-float_framebuffer0 = "false"
-srgb_framebuffer0 = "false"
-parameters = "BORDERMULT;GBAGAMMA"
-BORDERMULT = "3.000000"
-GBAGAMMA = "1.000000"
-EOF
+[[ -z $LCD_SHADER_PRESET ]] && LCD_SHADER_PRESET=""
 
 # CRT-based libretro cores
-[[ -z $CRT_CORE_NAMES ]] &&
-CRT_CORE_NAMES=(
-    "Genesis Plus GX"
-    "Nestopia"
-    "Mupen64Plus GLES2"
-    "PCSX-ReARMed"
-    "Snes9x"
-)
+[[ -z $CRT_CORE_NAMES ]] && CRT_CORE_NAMES=()
 
 # CRT-based shader preset
-[[ -z $CRT_SHADER_PRESET ]] &&
-read -r -d "" CRT_SHADER_PRESET <<EOF
-shaders = "1"
-shader0 = "$SHADERS_DIR/zfast_crt_standard.glsl"
-filter_linear0 = "true"
-wrap_mode0 = "clamp_to_border"
-mipmap_input0 = "false"
-alias0 = ""
-float_framebuffer0 = "false"
-srgb_framebuffer0 = "false"
-parameters = "BLURSCALEX;LOWLUMSCAN;HILUMSCAN;BRIGHTBOOST;MASK_DARK;MASK_FADE"
-BLURSCALEX = "0.300000"
-LOWLUMSCAN = "6.000000"
-HILUMSCAN = "8.000000"
-BRIGHTBOOST = "1.250000"
-MASK_DARK = "0.250000"
-MASK_FADE = "0.800000"
-EOF
+[[ -z $CRT_SHADER_PRESET ]] && CRT_SHADER_PRESET=""
 
 #===============================================================================
 # Helpers
