@@ -397,6 +397,10 @@ function action_configure_retropie {
     show_message "Getting bluetooth depends ..."
     run_retropie_packages bluetooth depends || return
 
+    # enable required kernel modules
+    show_message "Enabling required kernel modules ..."
+    run_retropie_packages raspbiantools enable_modules || return
+
     # enable splashscreen
     show_message "Enabling splashscreen ..."
     run_retropie_packages splashscreen default || return
