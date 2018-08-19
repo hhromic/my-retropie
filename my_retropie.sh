@@ -29,6 +29,12 @@ SHADERS_DIR=$SHADERS_BASE_DIR/shaders
 # shaders presets directory
 SHADERS_PRESETS_DIR=$SHADERS_BASE_DIR/presets
 
+# retroarch joypads directory
+JOYPADS_DIR=$CONFIGS_BASE_DIR/all/retroarch-joypads
+
+# emulationstation input config file
+ES_INPUT_FILE=$HOME/.emulationstation/es_input.cfg
+
 #===============================================================================
 # Raspbian Configuration
 
@@ -139,6 +145,34 @@ EOF
 )"
 )
 
+# controller mappings for retroarch joypads
+declare -A JOYPAD_MAPPING
+JOYPAD_MAPPING=()
+
+# emulationstation controller mapping file
+read -r -d "" ES_INPUT <<EOF
+<?xml version="1.0"?>
+<inputList>
+  <inputAction type="onfinish">
+    <command>/opt/retropie/supplementary/emulationstation/scripts/inputconfiguration.sh</command>
+  </inputAction>
+  <inputConfig type="keyboard" deviceName="Keyboard" deviceGUID="-1">
+    <input name="pageup" type="key" id="113" value="1"/>
+    <input name="start" type="key" id="13" value="1"/>
+    <input name="down" type="key" id="1073741905" value="1"/>
+    <input name="pagedown" type="key" id="119" value="1"/>
+    <input name="right" type="key" id="1073741903" value="1"/>
+    <input name="select" type="key" id="1073742053" value="1"/>
+    <input name="left" type="key" id="1073741904" value="1"/>
+    <input name="up" type="key" id="1073741906" value="1"/>
+    <input name="a" type="key" id="115" value="1"/>
+    <input name="b" type="key" id="120" value="1"/>
+    <input name="x" type="key" id="97" value="1"/>
+    <input name="y" type="key" id="122" value="1"/>
+  </inputConfig>
+</inputList>
+EOF
+
 #===============================================================================
 # Helpers
 
@@ -247,6 +281,8 @@ function show_variables {
     _show_var "SHADERS_BASE_DIR     " "$SHADERS_BASE_DIR" &&
     _show_var "SHADERS_DIR          " "$SHADERS_DIR" &&
     _show_var "SHADERS_PRESETS_DIR  " "$SHADERS_PRESETS_DIR" &&
+    _show_var "JOYPADS_DIR          " "$JOYPADS_DIR" &&
+    _show_var "ES_INPUT_FILE        " "$ES_INPUT_FILE" &&
 
     show_message "Raspbian configuration" && new_line &&
     _show_var "DEVICE_HOSTNAME      " "$DEVICE_HOSTNAME" &&
@@ -259,7 +295,9 @@ function show_variables {
     _show_arr "EMULATOR             " "EMULATOR" &&
     _show_arr "VIDEO_MODE           " "VIDEO_MODE" &&
     _show_arr "SHADER_PRESET_TYPE   " "SHADER_PRESET_TYPE" &&
-    _show_arr "SHADER_PRESET        " "SHADER_PRESET"
+    _show_arr "SHADER_PRESET        " "SHADER_PRESET" &&
+    _show_arr "JOYPAD_MAPPING       " "JOYPAD_MAPPING" &&
+    _show_var "ES_INPUT             " $'\n'"$ES_INPUT"
 }
 
 #===============================================================================
@@ -331,6 +369,12 @@ function write_shader_preset {
     local -r _base_dir="$SHADERS_PRESETS_DIR"/"$_core_name"
     mkdir -p "$_base_dir" || return
     echo "$_preset" > "$_base_dir"/"$_core_name".glslp || return
+}
+
+function write_joypad_mapping {
+    local -r _joypad="$1"
+    local -r _mapping="$2"
+    echo "$_mapping" > "$JOYPADS_DIR"/"$_joypad".cfg || return
 }
 
 function disable_splash {
@@ -492,6 +536,24 @@ function action_configure_shaders {
     done
 }
 
+function action_configure_joypads {
+    local _joypad
+    show_banner "Retroarch Joypads Mapping Configuration"
+    for _joypad in "${!JOYPAD_MAPPING[@]}"; do
+        show_message "Configuring retroarch joypad '%s' ..." "$_joypad"
+        write_joypad_mapping "$_joypad" \
+            "${JOYPAD_MAPPING[$_joypad]}" || return
+    done
+}
+
+function action_configure_es {
+    show_banner "EmulationStation Configuration"
+
+    # configure controller input
+    show_message "Configuring controller input ..."
+    cat > "$ES_INPUT_FILE" <<< "$ES_INPUT" || return
+}
+
 function action_configure_quietmode {
     show_banner "Quiet Mode Configuration"
 
@@ -541,6 +603,8 @@ function my_retropie {
             action_configure_emulators || return
             action_configure_videomodes || return
             action_configure_shaders || return
+            action_configure_joypads || return
+            action_configure_es || return
             action_configure_quietmode || return
             action_clean || return
             ;;
