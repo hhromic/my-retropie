@@ -318,6 +318,13 @@ function install_package_from_source {
     run_retropie_packages "$_package" || return
 }
 
+function set_retroarch_option {
+    local -r _option="$1"
+    local -r _value="$2"
+    sed -e "s/^.*$_option.*$/$_option = $_value/g" \
+        -i "$RETROARCH_CONFIG_FILE" || return
+}
+
 function write_shader_preset {
     local -r _core_name="$1"
     local -r _preset="$2"
@@ -338,16 +345,16 @@ function configure_kcmdline {
     sudo bash <<"EOF"
 function _set_var {
     local _name="$1"; local _value="$2"
-    local _idx=0; local _found
+    local -i _idx=0; local -i _found=0
     [[ -n "$_value" ]] && _value="=$_value"
     while [[ $_idx -lt ${#CMDLINE[@]} ]]; do
         if [[ "${CMDLINE[$_idx]}" =~ ^$_name(=|$) ]]; then
             CMDLINE[$_idx]="$_name$_value"
-            _found=yes
+            _found=1
         fi
         ((_idx++))
     done
-    [[ -z "$_found" ]] && CMDLINE[$_idx]="$_name$_value"
+    [[ $_found -eq 0 ]] && CMDLINE[$_idx]="$_name$_value"
 }
 mapfile -t CMDLINE < <(tr " " $'\n' < /boot/cmdline.txt)
 _set_var "console" "tty3"
@@ -474,8 +481,7 @@ function action_configure_shaders {
 
     # enable video shader option
     show_message "Enabling video shader option in retroarch ..."
-    sed -e 's/^.*video_shader_enable.*$/video_shader_enable = true/g' \
-        -i "$RETROARCH_CONFIG_FILE" || return
+    set_retroarch_option "video_shader_enable" "true" || return
 
     # configure video shaders
     for _core_name in "${!SHADER_PRESET_TYPE[@]}"; do
