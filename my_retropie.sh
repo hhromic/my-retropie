@@ -456,7 +456,7 @@ function action_configure_emulators {
 
 function action_configure_videomodes {
     local _emulator
-    show_banner "Emulators Default Video Modes Configuration"
+    show_banner "Default Video Modes Configuration"
     for _emulator in "${!VIDEO_MODE[@]}"; do
         show_message "Configuring '%s' emulator ..." "$_emulator"
         if [[ -f "$VIDEO_MODES_FILE" ]]; then
