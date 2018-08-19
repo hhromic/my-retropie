@@ -15,7 +15,7 @@ DEVICE_TIMEZONE=Europe/Dublin
 
 # packages to be installed from source
 PACKAGES_SOURCE+=(
-    "ps3controller"
+    ps3controller
 )
 
 #===============================================================================
