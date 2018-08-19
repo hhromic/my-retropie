@@ -30,10 +30,10 @@ SHADERS_PRESETS_DIR=$SHADERS_BASE_DIR/presets
 # Raspbian Configuration
 
 # device hostname
-: "${DEVICE_HOSTNAME:=retropie}"
+DEVICE_HOSTNAME=retropie
 
 # device timezone
-: "${DEVICE_TIMEZONE:=Etc/UTC}"
+DEVICE_TIMEZONE=Etc/UTC
 
 #===============================================================================
 # RetroPie Configuration
