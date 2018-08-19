@@ -462,9 +462,6 @@ function action_configure_videomodes {
     done
 }
 
-    _show_arr "SHADER_PRESET_TYPE   " "SHADER_PRESET_TYPE" &&
-    _show_arr "SHADER_PRESET        " "SHADER_PRESET"
-
 function action_configure_shaders {
     local _core_name
     local _shader_type
