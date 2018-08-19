@@ -449,7 +449,8 @@ function action_configure_emulators {
         if [[ -f "$_filename" ]]; then
             sed -E "/^default ?=/d" -i "$_filename" || return
         fi
-        println "default = \"%s\"" "$_system" >> "$_filename" || return
+        println "default = \"%s\"" "${EMULATOR[$_system]}" \
+            >> "$_filename" || return
     done
 }
 
