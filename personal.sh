@@ -21,4 +21,11 @@ PACKAGES_SOURCE+=(
 #===============================================================================
 # Run MyRetropie
 
-my_retropie "$@"
+my_retropie "$@" || exit
+
+#===============================================================================
+# Configure Controller Order
+
+show_message "Configuring controller order in retroarch ..."
+set_retroarch_option input_player1_joypad_index 1 || exit
+set_retroarch_option input_player2_joypad_index 0 || exit
