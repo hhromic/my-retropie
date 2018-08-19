@@ -19,6 +19,6 @@ PACKAGES_SOURCE+=(
 )
 
 #===============================================================================
-# Start MyRetropie
+# Run MyRetropie
 
-my_retropie_start "$@"
+my_retropie "$@"

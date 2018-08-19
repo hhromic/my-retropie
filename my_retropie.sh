@@ -513,7 +513,7 @@ function action_clean {
 #===============================================================================
 # Action dispatcher
 
-function my_retropie_start {
+function my_retropie {
     show_banner "Welcome to MyRetroPie !"
     show_variables
     case "$1" in
