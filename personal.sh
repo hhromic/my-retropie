@@ -96,6 +96,9 @@ EOF
 )"
 )
 
+# joypads order for retroarch
+JOYPAD_ORDER=([1]=1 [2]=0)
+
 # emulationstation controller mapping file
 read -r -d "" ES_INPUT <<EOF
 <?xml version="1.0"?>
@@ -152,10 +155,3 @@ EOF
 # Run MyRetropie
 
 my_retropie "$@" || exit
-
-#===============================================================================
-# Configure Controller Order
-
-show_message "Configuring controller order in retroarch ..."
-set_retroarch_option input_player1_joypad_index 1 || exit
-set_retroarch_option input_player2_joypad_index 0 || exit

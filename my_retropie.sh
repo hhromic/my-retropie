@@ -149,6 +149,10 @@ EOF
 declare -A JOYPAD_MAPPING
 JOYPAD_MAPPING=()
 
+# joypads order for retroarch
+declare -A JOYPAD_ORDER
+JOYPAD_ORDER=()
+
 # emulationstation controller mapping file
 read -r -d "" ES_INPUT <<EOF
 <?xml version="1.0"?>
@@ -297,6 +301,7 @@ function show_variables {
     _show_arr "SHADER_PRESET_TYPE   " "SHADER_PRESET_TYPE" &&
     _show_arr "SHADER_PRESET        " "SHADER_PRESET" &&
     _show_arr "JOYPAD_MAPPING       " "JOYPAD_MAPPING" &&
+    _show_arr "JOYPAD_ORDER         " "JOYPAD_ORDER" &&
     _show_var "ES_INPUT             " $'\n'"$ES_INPUT"
 }
 
@@ -525,7 +530,7 @@ function action_configure_shaders {
 
     # enable video shader option
     show_message "Enabling video shader option in retroarch ..."
-    set_retroarch_option "video_shader_enable" "true" || return
+    set_retroarch_option video_shader_enable true || return
 
     # configure video shaders
     for _core_name in "${!SHADER_PRESET_TYPE[@]}"; do
@@ -538,11 +543,21 @@ function action_configure_shaders {
 
 function action_configure_joypads {
     local _joypad
-    show_banner "Retroarch Joypads Mapping Configuration"
+    local _player
+    show_banner "Retroarch Joypads Configuration"
+
+    # configure joypads mappings
     for _joypad in "${!JOYPAD_MAPPING[@]}"; do
-        show_message "Configuring retroarch joypad '%s' ..." "$_joypad"
+        show_message "Configuring mapping for joypad '%s' ..." "$_joypad"
         write_joypad_mapping "$_joypad" \
             "${JOYPAD_MAPPING[$_joypad]}" || return
+    done
+
+    # configure contoller order
+    for _player in "${!JOYPAD_ORDER[@]}"; do
+        show_message "Configuring controller for player '%s' ..." "$_player"
+        set_retroarch_option input_player"$_player"_joypad_index \
+            "${JOYPAD_ORDER[$_player]}" || return
     done
 }
 
