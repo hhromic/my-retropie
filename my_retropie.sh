@@ -446,7 +446,9 @@ function action_configure_emulators {
     for _system in "${!EMULATOR[@]}"; do
         show_message "Configuring '%s' system ..." "$_system"
         _filename=$(print "$EMULATORS_FILE" "$_system")
-        sed -E "/^default ?=/d" -i "$_filename" || return
+        if [[ -f "$_filename" ]]; then
+            sed -E "/^default ?=/d" -i "$_filename" || return
+        fi
         println "default = \"%s\"" "$_system" >> "$_filename" || return
     done
 }
@@ -454,9 +456,11 @@ function action_configure_emulators {
 function action_configure_videomodes {
     local _emulator
     show_banner "Emulators Default Video Modes Configuration"
-    :> "$VIDEO_MODES_FILE" || return
     for _emulator in "${!VIDEO_MODE[@]}"; do
         show_message "Configuring '%s' emulator ..." "$_emulator"
+        if [[ -f "$VIDEO_MODES_FILE" ]]; then
+            sed -E "/^$_emulator ?=/d" -i "$VIDEO_MODES_FILE" || return
+        fi
         println "%s = \"%s\"" "$_emulator" "${VIDEO_MODE[$_emulator]}" \
             >> "$VIDEO_MODES_FILE" || return
     done
