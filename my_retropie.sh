@@ -143,7 +143,7 @@ EOF
 # Helpers
 
 function print {
-    local _format="$1"; shift
+    local -r _format="$1"; shift
     # shellcheck disable=SC2059
     printf "$_format" "$@"
 }
@@ -158,34 +158,34 @@ function println {
 
 function ansi_code {
     local _token
-    local _code
+    local -i _code
     for _token in "$@"; do
-        _code=""
+        _code=-1
         case "$_token" in
-            reset)      _code="0m" ;;
-            bold)       _code="1m" ;;
-            underline)  _code="4m" ;;
-            blink)      _code="5m" ;;
-            reverse)    _code="7m" ;;
-            invisible)  _code="8m" ;;
-            fg_black)   _code="30m" ;;
-            fg_red)     _code="31m" ;;
-            fg_green)   _code="32m" ;;
-            fg_yellow)  _code="33m" ;;
-            fg_blue)    _code="34m" ;;
-            fg_magenta) _code="35m" ;;
-            fg_cyan)    _code="36m" ;;
-            fg_white)   _code="37m" ;;
-            bg_black)   _code="40m" ;;
-            bg_red)     _code="41m" ;;
-            bg_green)   _code="42m" ;;
-            bg_yellow)  _code="43m" ;;
-            bg_blue)    _code="44m" ;;
-            bg_magenta) _code="45m" ;;
-            bg_cyan)    _code="46m" ;;
-            bg_white)   _code="47m" ;;
+            reset)      _code=0 ;;
+            bold)       _code=1 ;;
+            underline)  _code=4 ;;
+            blink)      _code=5 ;;
+            reverse)    _code=7 ;;
+            invisible)  _code=8 ;;
+            fg_black)   _code=30 ;;
+            fg_red)     _code=31 ;;
+            fg_green)   _code=32 ;;
+            fg_yellow)  _code=33 ;;
+            fg_blue)    _code=34 ;;
+            fg_magenta) _code=35 ;;
+            fg_cyan)    _code=36 ;;
+            fg_white)   _code=37 ;;
+            bg_black)   _code=40 ;;
+            bg_red)     _code=41 ;;
+            bg_green)   _code=42 ;;
+            bg_yellow)  _code=43 ;;
+            bg_blue)    _code=44 ;;
+            bg_magenta) _code=45 ;;
+            bg_cyan)    _code=46 ;;
+            bg_white)   _code=47 ;;
         esac
-        [[ -n "$_code" ]] && print $'\e'"[%s" "$_code"
+        [[ $_code -ge 0 ]] && print $'\e'"[%dm" "$_code"
     done
 }
 
@@ -221,13 +221,13 @@ function show_message {
 
 function show_variables {
     function _show_var {
-        local _label="$1"; shift
+        local -r _label="$1"; shift
         ansi_code reset fg_magenta && print "%s" "$_label" &&
         ansi_code bold && print " = " &&
         ansi_code reset && println "%s " "$@"
     }
     function _show_arr {
-        local _label="$1"
+        local -r _label="$1"
         local _keys; local _key; local _value
         ansi_code reset fg_magenta && print "%s" "$_label" &&
         ansi_code bold && println " = " && ansi_code reset
@@ -273,7 +273,7 @@ EOF
 }
 
 function set_hostname { # adapted from raspi-config
-    local _hostname="$1"
+    local -r _hostname="$1"
     local _current_hostname
     _current_hostname=$(tr -d $'\t'$'\n'$'\r' < /etc/hostname)
     sudo bash <<EOF
@@ -284,7 +284,7 @@ EOF
 }
 
 function set_timezone { # adapted from raspi-config
-    local _timezone="$1"
+    local -r _timezone="$1"
     sudo bash <<EOF
 rm -f /etc/localtime || exit
 echo "$_timezone" > /etc/timezone || exit
@@ -305,7 +305,7 @@ function run_retropie_packages {
 }
 
 function install_package_from_binary {
-    local _package="$1"
+    local -r _package="$1"
     local _action
     for _action in depends install_bin configure; do
         run_retropie_packages "$_package" "$_action" || return
@@ -313,15 +313,15 @@ function install_package_from_binary {
 }
 
 function install_package_from_source {
-    local _package="$1"
+    local -r _package="$1"
     run_retropie_packages "$_package" clean || return
     run_retropie_packages "$_package" || return
 }
 
 function write_shader_preset {
-    local _core_name="$1"
-    local _preset="$2"
-    local _base_dir="$SHADERS_PRESETS_DIR"/"$_core_name"
+    local -r _core_name="$1"
+    local -r _preset="$2"
+    local -r _base_dir="$SHADERS_PRESETS_DIR"/"$_core_name"
     mkdir -p "$_base_dir" || return
     echo "$_preset" > "$_base_dir"/"$_core_name".glslp || return
 }
