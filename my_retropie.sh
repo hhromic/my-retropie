@@ -11,6 +11,9 @@ RETROPIE_BASE_DIR=$HOME/RetroPie-Setup
 # config files base directory
 CONFIGS_BASE_DIR=/opt/retropie/configs
 
+# emulators config file
+EMULATORS_FILE=$CONFIGS_BASE_DIR/%s/emulators.cfg
+
 # video modes config file
 VIDEO_MODES_FILE=$CONFIGS_BASE_DIR/all/videomodes.cfg
 
@@ -43,59 +46,66 @@ RETROPIE_REPOSITORY=https://github.com/RetroPie/RetroPie-Setup
 
 # packages to be installed from binary
 PACKAGES_BINARY=(
-    "retroarch"
-    "emulationstation"
-    "runcommand"
-    "splashscreen"
+    retroarch
+    emulationstation
+    runcommand
+    splashscreen
 )
 
 # packages to be installed from source
 PACKAGES_SOURCE=(
-    "lr-genesis-plus-gx"
-    "lr-mgba"
-    "lr-mupen64plus"
-    "lr-nestopia"
-    "lr-pcsx-rearmed"
-    "lr-snes9x"
+    lr-genesis-plus-gx
+    lr-mgba
+    lr-mupen64plus
+    lr-nestopia
+    lr-pcsx-rearmed
+    lr-snes9x
 )
 
-# default emulators video mode
-VIDEO_MODE=CEA-4
-
-# emulators to set default video mode for
-VIDEO_MODE_EMULATORS=("${PACKAGES_SOURCE[@]}")
-
-# LCD-based libretro cores
-LCD_CORE_NAMES=(
-    "mGBA"
+# default emulators for systems
+declare -A EMULATOR
+EMULATOR=(
+    [fds]=lr-nestopia
+    [gamegear]=lr-genesis-plus-gx
+    [gb]=lr-mgba
+    [gba]=lr-mgba
+    [gbc]=lr-mgba
+    [mastersystem]=lr-genesis-plus-gx
+    [megadrive]=lr-genesis-plus-gx
+    [n64]=lr-mupen64plus
+    [nes]=lr-nestopia
+    [psx]=lr-pcsx-rearmed
+    [segacd]=lr-genesis-plus-gx
+    [sg-1000]=lr-genesis-plus-gx
+    [snes]=lr-snes9x
 )
 
-# LCD-based shader preset
-read -r -d "" LCD_SHADER_PRESET <<EOF
-shaders = "1"
-shader0 = "$SHADERS_DIR/zfast_lcd_standard.glsl"
-filter_linear0 = "true"
-wrap_mode0 = "clamp_to_border"
-mipmap_input0 = "false"
-alias0 = ""
-float_framebuffer0 = "false"
-srgb_framebuffer0 = "false"
-parameters = "BORDERMULT;GBAGAMMA"
-BORDERMULT = "3.000000"
-GBAGAMMA = "1.000000"
-EOF
-
-# CRT-based libretro cores
-CRT_CORE_NAMES=(
-    "Genesis Plus GX"
-    "Nestopia"
-    "Mupen64Plus GLES2"
-    "PCSX-ReARMed"
-    "Snes9x"
+# default video modes for emulators
+declare -A VIDEO_MODE
+VIDEO_MODE=(
+    [lr-genesis-plus-gx]=CEA-4
+    [lr-mgba]=CEA-4
+    [lr-mupen64plus]=CEA-4
+    [lr-nestopia]=CEA-4
+    [lr-pcsx-rearmed]=CEA-4
+    [lr-snes9x]=CEA-4
 )
 
-# CRT-based shader preset
-read -r -d "" CRT_SHADER_PRESET <<EOF
+# shader preset types for libretro core names
+declare -A SHADER_PRESET_TYPE
+SHADER_PRESET_TYPE=(
+    ["mGBA"]=LCD
+    ["Genesis Plus GX"]=CRT
+    ["Nestopia"]=CRT
+    ["Mupen64Plus GLES2"]=CRT
+    ["PCSX-ReARMed"]=CRT
+    ["Snes9x"]=CRT
+)
+
+# shader presets for shader preset types
+declare -A SHADER_PRESET
+SHADER_PRESET=(
+    [CRT]="$(cat <<EOF
 shaders = "1"
 shader0 = "$SHADERS_DIR/zfast_crt_standard.glsl"
 filter_linear0 = "true"
@@ -112,6 +122,22 @@ BRIGHTBOOST = "1.250000"
 MASK_DARK = "0.250000"
 MASK_FADE = "0.800000"
 EOF
+)"
+    [LCD]="$(cat <<EOF
+shaders = "1"
+shader0 = "$SHADERS_DIR/zfast_lcd_standard.glsl"
+filter_linear0 = "true"
+wrap_mode0 = "clamp_to_border"
+mipmap_input0 = "false"
+alias0 = ""
+float_framebuffer0 = "false"
+srgb_framebuffer0 = "false"
+parameters = "BORDERMULT;GBAGAMMA"
+BORDERMULT = "3.000000"
+GBAGAMMA = "1.000000"
+EOF
+)"
+)
 
 #===============================================================================
 # Helpers
@@ -200,12 +226,16 @@ function show_variables {
         ansi_code bold && print " = " &&
         ansi_code reset && println "%s " "$@"
     }
-    function _quote_arr {
-        local _idx=1
-        while [[ $_idx -le $# ]]; do
-            [[ "$_idx" -ne 1 ]] && print " "
-            print $'\"'"%s"$'\"' "${!_idx}"
-            ((_idx++))
+    function _show_arr {
+        local _label="$1"
+        local _keys; local _key; local _value
+        ansi_code reset fg_magenta && print "%s" "$_label" &&
+        ansi_code bold && println " = " && ansi_code reset
+        eval _keys=\(\"\$\{!"$2"\[@\]\}\"\)
+        for _key in "${_keys[@]}"; do
+            eval _value=\"\$\{"$2"\[\"\$_key\"\]\}\"
+            print "[" && ansi_code bold && print "%s" "$_key" &&
+            ansi_code reset && println "]=%s" "$_value"
         done
     }
 
@@ -226,12 +256,10 @@ function show_variables {
     _show_var "RETROPIE_REPOSITORY  " "$RETROPIE_REPOSITORY" &&
     _show_var "PACKAGES_BINARY      " "${PACKAGES_BINARY[@]}" &&
     _show_var "PACKAGES_SOURCE      " "${PACKAGES_SOURCE[@]}" &&
-    _show_var "VIDEO_MODE           " "$VIDEO_MODE" &&
-    _show_var "VIDEO_MODE_EMULATORS " "${VIDEO_MODE_EMULATORS[@]}" &&
-    _show_var "LCD_CORE_NAMES       " "$(_quote_arr "${LCD_CORE_NAMES[@]}")" &&
-    _show_var "LCD_SHADER_PRESET    " $'\n'"$LCD_SHADER_PRESET" &&
-    _show_var "CRT_CORE_NAMES       " "$(_quote_arr "${CRT_CORE_NAMES[@]}")" &&
-    _show_var "CRT_SHADER_PRESET    " $'\n'"$CRT_SHADER_PRESET"
+    _show_arr "EMULATOR             " "EMULATOR" &&
+    _show_arr "VIDEO_MODE           " "VIDEO_MODE" &&
+    _show_arr "SHADER_PRESET_TYPE   " "SHADER_PRESET_TYPE" &&
+    _show_arr "SHADER_PRESET        " "SHADER_PRESET"
 }
 
 #===============================================================================
@@ -411,18 +439,35 @@ function action_configure_retropie {
     run_retropie_packages autostart enable || return
 }
 
-function action_configure_videomode {
-    local _emulator
-    show_banner "Emulators Video Mode Configuration"
-    :> "$VIDEO_MODES_FILE" || return
-    for _emulator in "${VIDEO_MODE_EMULATORS[@]}"; do
-        show_message "Configuring '%s' emulator ..." "$_emulator"
-        echo "$_emulator = \"$VIDEO_MODE\"" >> "$VIDEO_MODES_FILE" || return
+function action_configure_emulators {
+    local _system
+    local _filename
+    show_banner "Default Emulators Configuration"
+    for _system in "${!EMULATOR[@]}"; do
+        show_message "Configuring '%s' system ..." "$_system"
+        _filename=$(print "$EMULATORS_FILE" "$_system")
+        sed -E "/^default ?=/d" -i "$_filename" || return
+        println "default = \"%s\"" "$_system" >> "$_filename" || return
     done
 }
 
+function action_configure_videomodes {
+    local _emulator
+    show_banner "Emulators Default Video Modes Configuration"
+    :> "$VIDEO_MODES_FILE" || return
+    for _emulator in "${!VIDEO_MODE[@]}"; do
+        show_message "Configuring '%s' emulator ..." "$_emulator"
+        println "%s = \"%s\"" "$_emulator" "${VIDEO_MODE[$_emulator]}" \
+            >> "$VIDEO_MODES_FILE" || return
+    done
+}
+
+    _show_arr "SHADER_PRESET_TYPE   " "SHADER_PRESET_TYPE" &&
+    _show_arr "SHADER_PRESET        " "SHADER_PRESET"
+
 function action_configure_shaders {
     local _core_name
+    local _shader_type
     show_banner "Retroarch Video Shaders Configuration"
 
     # enable video shader option
@@ -430,16 +475,12 @@ function action_configure_shaders {
     sed -e 's/^.*video_shader_enable.*$/video_shader_enable = true/g' \
         -i "$RETROARCH_CONFIG_FILE" || return
 
-    # configure video shader for LCD-based cores
-    for _core_name in "${LCD_CORE_NAMES[@]}"; do
-        show_message "Configuring libretro core '%s' for LCD ..." "$_core_name"
-        write_shader_preset "$_core_name" "$LCD_SHADER_PRESET" || return
-    done
-
-    # configure video shader for CRT-based cores
-    for _core_name in "${CRT_CORE_NAMES[@]}"; do
-        show_message "Configuring libretro core '%s' for CRT ..." "$_core_name"
-        write_shader_preset "$_core_name" "$CRT_SHADER_PRESET" || return
+    # configure video shaders
+    for _core_name in "${!SHADER_PRESET_TYPE[@]}"; do
+        show_message "Configuring libretro core name '%s' ..." "$_core_name"
+        _shader_type="${SHADER_PRESET_TYPE[$_core_name]}"
+        write_shader_preset "$_core_name" \
+            "${SHADER_PRESET[$_shader_type]}" || return
     done
 }
 
@@ -489,7 +530,8 @@ function my_retropie_start {
             action_retropie_setup || return
             action_install_packages || return
             action_configure_retropie || return
-            action_configure_videomode || return
+            action_configure_emulators || return
+            action_configure_videomodes || return
             action_configure_shaders || return
             action_configure_quietmode || return
             action_clean || return
