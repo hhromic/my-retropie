@@ -149,11 +149,11 @@ EOF
 declare -A JOYPAD_MAPPING
 JOYPAD_MAPPING=()
 
-# joypads order for retroarch
-declare -A JOYPAD_ORDER
-JOYPAD_ORDER=()
+# joypad indices for retroarch players
+declare -A JOYPAD_INDEX
+JOYPAD_INDEX=()
 
-# emulationstation controller mapping file
+# emulationstation input config
 read -r -d "" ES_INPUT <<EOF
 <?xml version="1.0"?>
 <inputList>
@@ -301,7 +301,7 @@ function show_variables {
     _show_arr "SHADER_PRESET_TYPE   " "SHADER_PRESET_TYPE" &&
     _show_arr "SHADER_PRESET        " "SHADER_PRESET" &&
     _show_arr "JOYPAD_MAPPING       " "JOYPAD_MAPPING" &&
-    _show_arr "JOYPAD_ORDER         " "JOYPAD_ORDER" &&
+    _show_arr "JOYPAD_INDEX         " "JOYPAD_INDEX" &&
     _show_var "ES_INPUT             " $'\n'"$ES_INPUT"
 }
 
@@ -553,11 +553,11 @@ function action_configure_joypads {
             "${JOYPAD_MAPPING[$_joypad]}" || return
     done
 
-    # configure contoller order
-    for _player in "${!JOYPAD_ORDER[@]}"; do
-        show_message "Configuring controller for player '%s' ..." "$_player"
+    # configure joypad indices
+    for _player in "${!JOYPAD_INDEX[@]}"; do
+        show_message "Configuring joypad index for player '%s' ..." "$_player"
         set_retroarch_option input_player"$_player"_joypad_index \
-            "${JOYPAD_ORDER[$_player]}" || return
+            "${JOYPAD_INDEX[$_player]}" || return
     done
 }
 

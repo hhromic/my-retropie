@@ -96,10 +96,10 @@ EOF
 )"
 )
 
-# joypads order for retroarch
-JOYPAD_ORDER=([1]=1 [2]=0)
+# joypad indices for retroarch players
+JOYPAD_INDEX=([1]=1 [2]=0)
 
-# emulationstation controller mapping file
+# emulationstation input config
 read -r -d "" ES_INPUT <<EOF
 <?xml version="1.0"?>
 <inputList>
