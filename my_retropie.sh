@@ -407,7 +407,8 @@ _set_option "quiet"
 _set_option "loglevel" "3"
 _set_option "vt.global_cursor_default" "0"
 _set_option "plymouth.enable" "0"
-tr " " $'\n' <<< "${CMDLINE[@]}" | sort -u | xargs > /boot/cmdline.txt
+CMDLINE=$(sort -u <(for l in "${CMDLINE[@]}"; do printf "%s\\n" "$l"; done))
+printf "%s" "${CMDLINE//$'\n'/ }" > /boot/cmdline.txt
 EOF
 }
 
