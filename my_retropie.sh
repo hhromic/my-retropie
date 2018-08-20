@@ -195,10 +195,8 @@ function println {
 }
 
 function ansi_code {
-    local _token
-    local -i _code
-    for _token in "$@"; do
-        _code=-1
+    local _token; for _token in "$@"; do
+        local -i _code=-1
         case "$_token" in
             reset)      _code=0 ;;
             bold)       _code=1 ;;
@@ -228,13 +226,12 @@ function ansi_code {
 }
 
 function confirm {
-    local _ans
     ansi_code reset && new_line && print "%s (" "$@" &&
     ansi_code fg_green && print "y" &&
     ansi_code reset && print "/" &&
     ansi_code fg_red && print "[N]" &&
     ansi_code reset && print ") "
-    read -r _ans
+    local _ans; read -r _ans
     case "$_ans" in
         y*|Y*) return 0 ;;
         *) return 1 ;;
@@ -266,12 +263,11 @@ function show_variables {
     }
     function _show_arr {
         local -r _label="$1"
-        local _keys; local _key; local _value
         ansi_code reset fg_magenta && print "%s" "$_label" &&
         ansi_code bold && println " = " && ansi_code reset
-        eval _keys=\(\"\$\{!"$2"\[@\]\}\"\)
-        for _key in "${_keys[@]}"; do
-            eval _value=\"\$\{"$2"\[\"\$_key\"\]\}\"
+        local _keys; eval _keys=\(\"\$\{!"$2"\[@\]\}\"\)
+        local _key; for _key in "${_keys[@]}"; do
+            local _value; eval _value=\"\$\{"$2"\[\"\$_key\"\]\}\"
             print "[" && ansi_code bold && print "%s" "$_key" &&
             ansi_code reset && println "]=%s" "$_value"
         done
@@ -317,11 +313,10 @@ EOF
 
 function set_hostname { # adapted from raspi-config
     local -r _hostname="$1"
-    local _current_hostname
-    _current_hostname=$(tr -d $'\t'$'\n'$'\r' < /etc/hostname)
+    local _current; _current="$(tr -d $'\t'$'\n'$'\r' < /etc/hostname)"
     sudo bash <<EOF
 echo "$_hostname" > /etc/hostname || exit
-sed -e "s/127.0.1.1.*$_current_hostname/127.0.1.1\\t$_hostname/g" \
+sed -e "s/127.0.1.1.*$_current/127.0.1.1\\t$_hostname/g" \
     -i /etc/hosts || exit
 EOF
 }
@@ -349,8 +344,7 @@ function run_retropie_packages {
 
 function install_package_from_binary {
     local -r _package="$1"
-    local _action
-    for _action in depends install_bin configure; do
+    local _action; for _action in depends install_bin configure; do
         run_retropie_packages "$_package" "$_action" || return
     done
 }
@@ -364,7 +358,7 @@ function install_package_from_source {
 function set_retroarch_option {
     local -r _option="$1"
     local -r _value="$2"
-    sed -e "s/^.*$_option.*$/$_option = $_value/g" \
+    sed -e "s/^.*$_option.*$/$_option = \"$_value\"/g" \
         -i "$RETROARCH_CONFIG_FILE" || return
 }
 
@@ -373,13 +367,13 @@ function write_shader_preset {
     local -r _preset="$2"
     local -r _base_dir="$SHADERS_PRESETS_DIR"/"$_core_name"
     mkdir -p "$_base_dir" || return
-    echo "$_preset" > "$_base_dir"/"$_core_name".glslp || return
+    println "$_preset" > "$_base_dir"/"$_core_name".glslp || return
 }
 
 function write_joypad_mapping {
     local -r _joypad="$1"
     local -r _mapping="$2"
-    echo "$_mapping" > "$JOYPADS_DIR"/"$_joypad".cfg || return
+    println "$_mapping" > "$JOYPADS_DIR"/"$_joypad".cfg || return
 }
 
 function disable_splash {
@@ -393,10 +387,11 @@ EOF
 function configure_kcmdline {
     sudo bash <<"EOF"
 function _set_var {
-    local _name="$1"; local _value="$2"
-    local -i _idx=0; local -i _found=0
+    local -r _name="$1"
+    local _value="$2"
     [[ -n "$_value" ]] && _value="=$_value"
-    while [[ $_idx -lt ${#CMDLINE[@]} ]]; do
+    local -i _found=0
+    local -i _idx=0; while [[ $_idx -lt ${#CMDLINE[@]} ]]; do
         if [[ "${CMDLINE[$_idx]}" =~ ^$_name(=|$) ]]; then
             CMDLINE[$_idx]="$_name$_value"
             _found=1
@@ -458,17 +453,16 @@ function action_retropie_setup {
 }
 
 function action_install_packages {
-    local _package
     show_banner "RetroPie Packages Installation"
 
     # install packages from binary
-    for _package in "${PACKAGES_BINARY[@]}"; do
+    local _package; for _package in "${PACKAGES_BINARY[@]}"; do
         show_message "Installing '%s' package from binary ..." "$_package"
         install_package_from_binary "$_package" || return
     done
 
     # install packages from source
-    for _package in "${PACKAGES_SOURCE[@]}"; do
+    local _package; for _package in "${PACKAGES_SOURCE[@]}"; do
         show_message "Installing '%s' package from source ..." "$_package"
         install_package_from_source "$_package" || return
     done
@@ -496,12 +490,10 @@ function action_configure_retropie {
 }
 
 function action_configure_emulators {
-    local _system
-    local _filename
     show_banner "Default Emulators Configuration"
-    for _system in "${!EMULATOR[@]}"; do
+    local _system; for _system in "${!EMULATOR[@]}"; do
         show_message "Configuring '%s' system ..." "$_system"
-        _filename=$(print "$EMULATORS_FILE" "$_system")
+        local _filename; _filename="$(print "$EMULATORS_FILE" "$_system")"
         if [[ -f "$_filename" ]]; then
             sed -E "/^default ?=/d" -i "$_filename" || return
         fi
@@ -511,9 +503,8 @@ function action_configure_emulators {
 }
 
 function action_configure_videomodes {
-    local _emulator
     show_banner "Default Video Modes Configuration"
-    for _emulator in "${!VIDEO_MODE[@]}"; do
+    local _emulator; for _emulator in "${!VIDEO_MODE[@]}"; do
         show_message "Configuring '%s' emulator ..." "$_emulator"
         if [[ -f "$VIDEO_MODES_FILE" ]]; then
             sed -E "/^$_emulator ?=/d" -i "$VIDEO_MODES_FILE" || return
@@ -524,8 +515,6 @@ function action_configure_videomodes {
 }
 
 function action_configure_shaders {
-    local _core_name
-    local _shader_type
     show_banner "Retroarch Video Shaders Configuration"
 
     # enable video shader option
@@ -533,28 +522,26 @@ function action_configure_shaders {
     set_retroarch_option "video_shader_enable" "true" || return
 
     # configure video shaders
-    for _core_name in "${!SHADER_PRESET_TYPE[@]}"; do
+    local _core_name; for _core_name in "${!SHADER_PRESET_TYPE[@]}"; do
         show_message "Configuring libretro core name '%s' ..." "$_core_name"
-        _shader_type="${SHADER_PRESET_TYPE[$_core_name]}"
+        local -r _shader_type="${SHADER_PRESET_TYPE[$_core_name]}"
         write_shader_preset "$_core_name" \
             "${SHADER_PRESET[$_shader_type]}" || return
     done
 }
 
 function action_configure_joypads {
-    local _joypad
-    local _player
     show_banner "Retroarch Joypads Configuration"
 
     # configure joypads mappings
-    for _joypad in "${!JOYPAD_MAPPING[@]}"; do
+    local _joypad; for _joypad in "${!JOYPAD_MAPPING[@]}"; do
         show_message "Configuring mapping for joypad '%s' ..." "$_joypad"
         write_joypad_mapping "$_joypad" \
             "${JOYPAD_MAPPING[$_joypad]}" || return
     done
 
     # configure joypad indices
-    for _player in "${!JOYPAD_INDEX[@]}"; do
+    local _player; for _player in "${!JOYPAD_INDEX[@]}"; do
         show_message "Configuring joypad index for player '%s' ..." "$_player"
         set_retroarch_option "input_player${_player}_joypad_index" \
             "${JOYPAD_INDEX[$_player]}" || return
