@@ -315,7 +315,7 @@ function set_hostname { # adapted from raspi-config
   local -r _hostname="$1"
   local _current; _current="$(tr -d $'\t'$'\n'$'\r' < /etc/hostname)"
   sudo bash <<EOF
-echo "$_hostname" > /etc/hostname || exit
+printf "%s\n" "$_hostname" > /etc/hostname || exit
 sed -e "s/127.0.1.1.*$_current/127.0.1.1\\t$_hostname/g" \
   -i /etc/hosts || exit
 EOF
@@ -325,7 +325,7 @@ function set_timezone { # adapted from raspi-config
   local -r _timezone="$1"
   sudo bash <<EOF
 rm -f /etc/localtime || exit
-echo "$_timezone" > /etc/timezone || exit
+printf "%s\n" "$_timezone" > /etc/timezone || exit
 dpkg-reconfigure -f noninteractive tzdata || exit
 EOF
 }
@@ -379,7 +379,7 @@ function write_joypad_mapping {
 function disable_splash {
   sudo bash <<"EOF"
 if ! grep -q "^disable_splash=" /boot/config.txt 2>/dev/null; then
-  echo "disable_splash=1" >> /boot/config.txt || exit
+  printf "%s\n" "disable_splash=1" >> /boot/config.txt || exit
 fi
 EOF
 }
