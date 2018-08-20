@@ -386,27 +386,27 @@ EOF
 
 function configure_kcmdline {
     sudo bash <<"EOF"
-function _set_var {
-    local -r _name="$1"
+function _set_option {
+    local -r _option="$1"
     local _value="$2"
     [[ -n "$_value" ]] && _value="=$_value"
     local -i _found=0
     local -i _idx=0; while [[ $_idx -lt ${#CMDLINE[@]} ]]; do
-        if [[ "${CMDLINE[$_idx]}" =~ ^$_name(=|$) ]]; then
-            CMDLINE[$_idx]="$_name$_value"
+        if [[ "${CMDLINE[$_idx]}" =~ ^$_option(=|$) ]]; then
+            CMDLINE[$_idx]="$_option$_value"
             _found=1
         fi
         ((_idx++))
     done
-    [[ $_found -eq 0 ]] && CMDLINE[$_idx]="$_name$_value"
+    [[ $_found -eq 0 ]] && CMDLINE[$_idx]="$_option$_value"
 }
 mapfile -t CMDLINE < <(tr " " $'\n' < /boot/cmdline.txt)
-_set_var "console" "tty3"
-_set_var "logo.nologo"
-_set_var "quiet"
-_set_var "loglevel" "3"
-_set_var "vt.global_cursor_default" "0"
-_set_var "plymouth.enable" "0"
+_set_option "console" "tty3"
+_set_option "logo.nologo"
+_set_option "quiet"
+_set_option "loglevel" "3"
+_set_option "vt.global_cursor_default" "0"
+_set_option "plymouth.enable" "0"
 tr " " $'\n' <<< "${CMDLINE[@]}" | sort -u | xargs > /boot/cmdline.txt
 EOF
 }
@@ -524,7 +524,7 @@ function action_configure_shaders {
     # configure video shaders
     local _core_name; for _core_name in "${!SHADER_PRESET_TYPE[@]}"; do
         show_message "Configuring libretro core name '%s' ..." "$_core_name"
-        local -r _shader_type="${SHADER_PRESET_TYPE[$_core_name]}"
+        local _shader_type="${SHADER_PRESET_TYPE[$_core_name]}"
         write_shader_preset "$_core_name" \
             "${SHADER_PRESET[$_shader_type]}" || return
     done
