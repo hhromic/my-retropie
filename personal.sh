@@ -20,7 +20,7 @@ PACKAGES_SOURCE+=(
 
 # controller mappings for retroarch joypads
 JOYPAD_MAPPING=(
-  ["PLAYSTATION(R)3 Controller"]="$(cat <<EOF
+  ["PLAYSTATION(R)3 Controller"]="$(cat <<"EOF"
 input_device = "PLAYSTATION(R)3 Controller"
 input_driver = "udev"
 input_r_y_plus_axis = "+3"
@@ -57,7 +57,7 @@ input_y_btn = "15"
 input_r_x_plus_axis = "+2"
 EOF
 )"
-  ["szmy-power Ltd.  Joypad  "]="$(cat <<EOF
+  ["szmy-power Ltd.  Joypad  "]="$(cat <<"EOF"
 input_device = "szmy-power Ltd.  Joypad  "
 input_driver = "udev"
 input_r_y_plus_axis = "+3"
@@ -100,7 +100,7 @@ EOF
 JOYPAD_INDEX=([1]=1 [2]=0)
 
 # emulationstation input config
-read -r -d "" ES_INPUT <<EOF
+read -r -d "" ES_INPUT <<"EOF"
 <?xml version="1.0"?>
 <inputList>
   <inputAction type="onfinish">
