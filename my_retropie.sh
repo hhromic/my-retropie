@@ -479,20 +479,20 @@ function action_configure_retropie {
 
     # get bluetooth depends
     show_message "Getting bluetooth depends ..."
-    run_retropie_packages bluetooth depends || return
+    run_retropie_packages "bluetooth" "depends" || return
 
     # enable required kernel modules
     show_message "Enabling required kernel modules ..."
-    run_retropie_packages raspbiantools enable_modules || return
+    run_retropie_packages "raspbiantools" "enable_modules" || return
 
     # enable splashscreen
     show_message "Enabling splashscreen ..."
-    run_retropie_packages splashscreen default || return
-    run_retropie_packages splashscreen enable || return
+    run_retropie_packages "splashscreen" "default" || return
+    run_retropie_packages "splashscreen" "enable" || return
 
     # enable autostart
     show_message "Enabling autostart ..."
-    run_retropie_packages autostart enable || return
+    run_retropie_packages "autostart" "enable" || return
 }
 
 function action_configure_emulators {
@@ -530,7 +530,7 @@ function action_configure_shaders {
 
     # enable video shader option
     show_message "Enabling video shader option in retroarch ..."
-    set_retroarch_option video_shader_enable true || return
+    set_retroarch_option "video_shader_enable" "true" || return
 
     # configure video shaders
     for _core_name in "${!SHADER_PRESET_TYPE[@]}"; do
@@ -556,7 +556,7 @@ function action_configure_joypads {
     # configure joypad indices
     for _player in "${!JOYPAD_INDEX[@]}"; do
         show_message "Configuring joypad index for player '%s' ..." "$_player"
-        set_retroarch_option input_player"$_player"_joypad_index \
+        set_retroarch_option "input_player${_player}_joypad_index" \
             "${JOYPAD_INDEX[$_player]}" || return
     done
 }
