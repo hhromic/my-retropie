@@ -315,8 +315,8 @@ function set_hostname { # adapted from raspi-config
   local -r _hostname="$1"
   local _current; _current="$(tr -d $'\t'$'\n'$'\r' < /etc/hostname)"
   sudo bash <<EOF
-printf "%s\\n" "$_hostname" > /etc/hostname || exit
-sed -e "s/127.0.1.1.*$_current/127.0.1.1\\t$_hostname/g" \
+printf "%s"\$'\\n' "$_hostname" > /etc/hostname || exit
+sed -e "s/127.0.1.1.*$_current/127.0.1.1"\$'\\t'"$_hostname/g" \
   -i /etc/hosts || exit
 EOF
 }
@@ -325,7 +325,7 @@ function set_timezone { # adapted from raspi-config
   local -r _timezone="$1"
   sudo bash <<EOF
 rm -f /etc/localtime || exit
-printf "%s\\n" "$_timezone" > /etc/timezone || exit
+printf "%s"\$'\\n' "$_timezone" > /etc/timezone || exit
 dpkg-reconfigure -f noninteractive tzdata || exit
 EOF
 }
@@ -379,7 +379,7 @@ function write_joypad_mapping {
 function disable_splash {
   sudo bash <<"EOF"
 if ! grep -q "^disable_splash=" /boot/config.txt 2>/dev/null; then
-  printf "%s\n" "disable_splash=1" >> /boot/config.txt || exit
+  printf "%s"$'\n' "disable_splash=1" >> /boot/config.txt || exit
 fi
 EOF
 }
@@ -407,8 +407,8 @@ _set_option "quiet"
 _set_option "loglevel" "3"
 _set_option "vt.global_cursor_default" "0"
 _set_option "plymouth.enable" "0"
-CMDLINE=$(sort -u <(for l in "${CMDLINE[@]}"; do printf "%s\n" "$l"; done))
-printf "%s\n" "${CMDLINE//$'\n'/ }" > /boot/cmdline.txt
+N_CMDLINE=$(sort -u <(for l in "${CMDLINE[@]}"; do printf "%s"$'\n' "$l"; done))
+printf "%s"$'\n' "${N_CMDLINE//$'\n'/ }" > /boot/cmdline.txt
 EOF
 }
 
