@@ -14,11 +14,11 @@ All the instructions below are meant to be run as the normal user `pi`.
 
 4. Boot the Raspberry Pi device and login either via SSH or the console
 
-5. Install the `ca-certificates`, `git` and `curl` packages:
+5. Install the `ca-certificates`, `git` and `wget` packages:
 
-       sudo apt-get install ca-certificates git curl
+       sudo apt-get install ca-certificates git wget
 
 6. Start the personal installation script:
 
-       bash <(curl -sL https://git.io/fAeSi)
+       bash <(wget https://git.io/fAeSi -q -O -)
 
