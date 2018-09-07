@@ -197,21 +197,21 @@ EOF
 #===============================================================================
 # Helpers
 
-function print {
+function print() {
   local -r _format="$1"; shift
   # shellcheck disable=SC2059
   printf "$_format" "$@"
 }
 
-function new_line {
+function new_line() {
   print "%s" $'\n'
 }
 
-function println {
+function println() {
   print "$@" && new_line
 }
 
-function ansi_code {
+function ansi_code() {
   local _token; for _token in "$@"; do
     local -i _code=-1
     case "$_token" in
@@ -242,7 +242,7 @@ function ansi_code {
   done
 }
 
-function confirm {
+function confirm() {
   ansi_code reset && new_line && print "%s (" "$@" &&
   ansi_code fg_green && print "y" &&
   ansi_code reset && print "/" &&
@@ -255,13 +255,13 @@ function confirm {
   esac
 }
 
-function mkdirparents {
+function mkdirparents() {
   local -r _filename="$1"
   local -r _umask="$2"
   ([[ -n "$_umask" ]] && umask "$_umask"; mkdir -p "${_filename%/*}")
 }
 
-function show_banner {
+function show_banner() {
   ansi_code reset && new_line &&
   ansi_code bold fg_red &&
   println "= = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =" &&
@@ -271,20 +271,20 @@ function show_banner {
   ansi_code reset
 }
 
-function show_message {
+function show_message() {
   ansi_code reset && new_line &&
   ansi_code fg_cyan && print ">>> " &&
   ansi_code bold && println "$@" && ansi_code reset
 }
 
-function show_variables {
-  function _show_var {
+function show_variables() {
+  function _show_var() {
     local -r _label="$1"; shift
     ansi_code reset fg_magenta && print "%s" "$_label" &&
     ansi_code bold && print " = " &&
     ansi_code reset && println "%s " "$@"
   }
-  function _show_arr {
+  function _show_arr() {
     local -r _label="$1"
     ansi_code reset fg_magenta && print "%s" "$_label" &&
     ansi_code bold && println " = " && ansi_code reset
@@ -332,7 +332,7 @@ function show_variables {
 #===============================================================================
 # Actions helpers
 
-function enable_apt_suite {
+function enable_apt_suite() {
   local -r _suite="$1"
   sudo bash <<EOF
 grep "^deb" /etc/apt/sources.list | awk "{\\\$3=\"$_suite\"}1" \
@@ -340,7 +340,7 @@ grep "^deb" /etc/apt/sources.list | awk "{\\\$3=\"$_suite\"}1" \
 EOF
 }
 
-function set_apt_preference {
+function set_apt_preference() {
   local -r _filename="$1"
   local -r _package="$2"
   local -r _suite="$3"
@@ -354,21 +354,21 @@ EOF_2
 EOF
 }
 
-function update_apt_packages {
+function update_apt_packages() {
   sudo bash <<"EOF"
 apt-get -y update
 apt-get -y dist-upgrade
 EOF
 }
 
-function install_apt_required_packages {
+function install_apt_required_packages() {
   sudo bash <<"EOF"
 apt-get -y install git ca-certificates \
   bluetooth bluez bluez-firmware libbluetooth3
 EOF
 }
 
-function set_hostname { # adapted from raspi-config
+function set_hostname() { # adapted from raspi-config
   local -r _hostname="$1"
   local _current; _current="$(tr -d $'\t'$'\n'$'\r' < /etc/hostname)"
   sudo bash <<EOF
@@ -378,7 +378,7 @@ sed -e "s/127.0.1.1.*$_current/127.0.1.1"\$'\\t'"$_hostname/g" \
 EOF
 }
 
-function set_timezone { # adapted from raspi-config
+function set_timezone() { # adapted from raspi-config
   local -r _timezone="$1"
   sudo bash <<EOF
 rm -f /etc/localtime || exit
@@ -387,7 +387,7 @@ dpkg-reconfigure -f noninteractive tzdata || exit
 EOF
 }
 
-function disable_network_wait { # adapted from raspi-config
+function disable_network_wait() { # adapted from raspi-config
   sudo bash <<"EOF"
 if [[ -f /etc/systemd/system/dhcpcd.service.d/wait.conf ]]; then
   rm -f /etc/systemd/system/dhcpcd.service.d/wait.conf || exit
@@ -395,12 +395,12 @@ fi
 EOF
 }
 
-function get_bluetooth_adapters {
+function get_bluetooth_adapters() {
   hciconfig | grep -o -E "([[:xdigit:]]{1,2}:){5}[[:xdigit:]]{1,2}" \
     | tr "[:lower:]" "[:upper:]"
 }
 
-function write_bluetooth_info {
+function write_bluetooth_info() {
   local -r _adapter="$1"
   local -r _device="$2"
   local -r _data="$3"
@@ -409,7 +409,7 @@ function write_bluetooth_info {
   println "$_data" > "$_filename" || return
 }
 
-function write_bluetooth_cache {
+function write_bluetooth_cache() {
   local -r _adapter="$1"
   local -r _device="$2"
   local -r _data="$3"
@@ -418,31 +418,31 @@ function write_bluetooth_cache {
   println "$_data" > "$_filename" || return
 }
 
-function run_retropie_packages {
+function run_retropie_packages() {
   sudo "$RETROPIE_BASE_DIR"/retropie_packages.sh "$@"
 }
 
-function install_package_from_binary {
+function install_package_from_binary() {
   local -r _package="$1"
   local _action; for _action in depends install_bin configure; do
     run_retropie_packages "$_package" "$_action" || return
   done
 }
 
-function install_package_from_source {
+function install_package_from_source() {
   local -r _package="$1"
   run_retropie_packages "$_package" clean || return
   run_retropie_packages "$_package" || return
 }
 
-function set_retroarch_option {
+function set_retroarch_option() {
   local -r _option="$1"
   local -r _value="$2"
   sed -e "s/^.*$_option.*$/$_option = \"$_value\"/g" \
     -i "$RETROARCH_CONFIG_FILE" || return
 }
 
-function write_shader_preset {
+function write_shader_preset() {
   local -r _core_name="$1"
   local -r _preset="$2"
   local -r _filename="$SHADERS_PRESETS_DIR"/"$_core_name"/"$_core_name".glslp
@@ -450,13 +450,13 @@ function write_shader_preset {
   println "$_preset" > "$_filename" || return
 }
 
-function write_joypad_mapping {
+function write_joypad_mapping() {
   local -r _joypad="$1"
   local -r _mapping="$2"
   println "$_mapping" > "$JOYPADS_DIR"/"$_joypad".cfg || return
 }
 
-function disable_splash {
+function disable_splash() {
   sudo bash <<"EOF"
 if ! grep -q "^disable_splash=" /boot/config.txt 2>/dev/null; then
   printf "%s"$'\n' "disable_splash=1" >> /boot/config.txt || exit
@@ -464,9 +464,9 @@ fi
 EOF
 }
 
-function configure_kcmdline {
+function configure_kcmdline() {
   sudo bash <<"EOF"
-function _set_option {
+function _set_option() {
   local -r _option="$1"
   local _value="$2"
   [[ -n "$_value" ]] && _value="=$_value"
@@ -492,7 +492,7 @@ printf "%s"$'\n' "${N_CMDLINE//$'\n'/ }" > /boot/cmdline.txt
 EOF
 }
 
-function clean_apt {
+function clean_apt() {
   sudo bash <<"EOF"
 apt-get -y clean
 EOF
@@ -501,7 +501,7 @@ EOF
 #===============================================================================
 # Actions
 
-function action_apt_setup {
+function action_apt_setup() {
   show_banner "APT Setup"
 
   # enable testing suite
@@ -521,7 +521,7 @@ function action_apt_setup {
   set_apt_preference "bluez" "${_bluez_packages[*]}" "testing" "900"
 }
 
-function action_raspbian_update {
+function action_raspbian_update() {
   show_banner "Raspbian Update"
 
   # update apt packages
@@ -529,7 +529,7 @@ function action_raspbian_update {
   update_apt_packages || return
 }
 
-function action_raspbian_setup {
+function action_raspbian_setup() {
   show_banner "Raspbian Setup"
 
   # install required apt packages
@@ -549,7 +549,7 @@ function action_raspbian_setup {
   disable_network_wait || return
 }
 
-function action_configure_bluetooth {
+function action_configure_bluetooth() {
   show_banner "Bluetooth Configuration"
 
   # stop bluetooth service
@@ -573,7 +573,7 @@ function action_configure_bluetooth {
   systemctl start bluetooth || return
 }
 
-function action_retropie_setup {
+function action_retropie_setup() {
   show_banner "RetroPie Setup"
 
   # clone RetroPie-Setup repository
@@ -581,7 +581,7 @@ function action_retropie_setup {
   git clone "$RETROPIE_REPOSITORY" "$RETROPIE_BASE_DIR" || return
 }
 
-function action_install_packages {
+function action_install_packages() {
   show_banner "RetroPie Packages Installation"
 
   # install packages from binary
@@ -597,7 +597,7 @@ function action_install_packages {
   done
 }
 
-function action_configure_retropie {
+function action_configure_retropie() {
   show_banner "RetroPie Configuration"
 
   # install bluetooth dependencies
@@ -618,7 +618,7 @@ function action_configure_retropie {
   run_retropie_packages "autostart" "enable" || return
 }
 
-function action_configure_emulators {
+function action_configure_emulators() {
   show_banner "Default Emulators Configuration"
   local _system; for _system in "${!EMULATOR[@]}"; do
     show_message "Configuring '%s' system ..." "$_system"
@@ -631,7 +631,7 @@ function action_configure_emulators {
   done
 }
 
-function action_configure_videomodes {
+function action_configure_videomodes() {
   show_banner "Default Video Modes Configuration"
   local _emulator; for _emulator in "${!VIDEO_MODE[@]}"; do
     show_message "Configuring '%s' emulator ..." "$_emulator"
@@ -643,7 +643,7 @@ function action_configure_videomodes {
   done
 }
 
-function action_configure_shaders {
+function action_configure_shaders() {
   show_banner "Retroarch Video Shaders Configuration"
 
   # enable video shader option
@@ -659,7 +659,7 @@ function action_configure_shaders {
   done
 }
 
-function action_configure_joypads {
+function action_configure_joypads() {
   show_banner "Retroarch Joypads Configuration"
 
   # configure joypads mappings
@@ -677,7 +677,7 @@ function action_configure_joypads {
   done
 }
 
-function action_configure_es {
+function action_configure_es() {
   show_banner "EmulationStation Configuration"
 
   # configure controller input
@@ -685,7 +685,7 @@ function action_configure_es {
   cat > "$ES_INPUT_FILE" <<< "$ES_INPUT" || return
 }
 
-function action_configure_quietmode {
+function action_configure_quietmode() {
   show_banner "Quiet Mode Configuration"
 
   # enable hush login
@@ -701,7 +701,7 @@ function action_configure_quietmode {
   configure_kcmdline || return
 }
 
-function action_clean {
+function action_clean() {
   show_banner "System Clean"
 
   # clean the APT system
@@ -712,7 +712,7 @@ function action_clean {
 #===============================================================================
 # Action dispatcher
 
-function my_retropie {
+function my_retropie() {
   show_banner "Welcome to MyRetroPie !"
   show_variables
   case "$1" in
