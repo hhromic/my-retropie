@@ -259,12 +259,6 @@ function confirm() {
   esac
 }
 
-function mkdirparents() {
-  local -r _filename="$1"
-  local -r _umask="$2"
-  ([[ -n "$_umask" ]] && umask "$_umask"; mkdir -p "${_filename%/*}")
-}
-
 function show_banner() {
   ansi_code reset && new_line &&
   ansi_code bold fg_red &&
@@ -404,6 +398,10 @@ fi
 EOF
 }
 
+function run_systemctl() {
+  sudo systemctl "$@"
+}
+
 function get_bluetooth_adapters() {
   hciconfig | grep -o -E "([[:xdigit:]]{1,2}:){5}[[:xdigit:]]{1,2}" \
     | tr "[:lower:]" "[:upper:]"
@@ -415,8 +413,11 @@ function write_bluetooth_info() {
   local -r _data="$3"
   local _filename
   _filename="$(print "$BLUEZ_INFO_FILE" "$_adapter" "$_device")"
-  mkdirparents "$_filename" "0077" || return
-  println "$_data" > "$_filename" || return
+  sudo bash <<EOF
+umask 0077
+mkdir -p "${_filename%/*}" || exit
+printf "$_data"$'\\n' > "$_filename" || exit
+EOF
 }
 
 function write_bluetooth_cache() {
@@ -425,8 +426,11 @@ function write_bluetooth_cache() {
   local -r _data="$3"
   local _filename
   _filename="$(print "$BLUEZ_CACHE_FILE" "$_adapter" "$_device")"
-  mkdirparents "$_filename" "0077" || return
-  println "$_data" > "$_filename" || return
+  sudo bash <<EOF
+umask 0077
+mkdir -p "${_filename%/*}" || exit
+printf "$_data"$'\\n' > "$_filename" || exit
+EOF
 }
 
 function run_retropie_packages() {
@@ -458,7 +462,7 @@ function write_shader_preset() {
   local -r _core_name="$1"
   local -r _preset="$2"
   local -r _filename="$SHADERS_PRESETS_DIR"/"$_core_name"/"$_core_name".glslp
-  mkdirparents "$_filename" || return
+  mkdir -p "${_filename%/*}" || return
   println "$_preset" > "$_filename" || return
 }
 
@@ -570,7 +574,7 @@ function action_configure_bluetooth() {
 
   # stop bluetooth service
   show_message "Stopping bluetooth service ..."
-  sudo systemctl stop bluetooth || return
+  run_systemctl "stop" "bluetooth" || return
 
   # configure bluetooth devices
   for _adapter in $(get_bluetooth_adapters); do
@@ -586,7 +590,7 @@ function action_configure_bluetooth() {
 
   # start bluetooth service
   show_message "Starting bluetooth service ..."
-  sudo systemctl start bluetooth || return
+  run_systemctl "start" "bluetooth" || return
 }
 
 function action_retropie_setup() {
