@@ -398,6 +398,24 @@ fi
 EOF
 }
 
+function run_retropie_packages() {
+  sudo "$RETROPIE_BASE_DIR"/retropie_packages.sh "$@"
+}
+
+function install_package_from_binary() {
+  local -r _package="$1"
+  local _action
+  for _action in depends install_bin configure; do
+    run_retropie_packages "$_package" "$_action" || return
+  done
+}
+
+function install_package_from_source() {
+  local -r _package="$1"
+  run_retropie_packages "$_package" clean || return
+  run_retropie_packages "$_package" || return
+}
+
 function run_systemctl() {
   sudo systemctl "$@"
 }
@@ -431,24 +449,6 @@ umask 0077
 mkdir -p "${_filename%/*}" || exit
 printf "$_data"$'\\n' > "$_filename" || exit
 EOF
-}
-
-function run_retropie_packages() {
-  sudo "$RETROPIE_BASE_DIR"/retropie_packages.sh "$@"
-}
-
-function install_package_from_binary() {
-  local -r _package="$1"
-  local _action
-  for _action in depends install_bin configure; do
-    run_retropie_packages "$_package" "$_action" || return
-  done
-}
-
-function install_package_from_source() {
-  local -r _package="$1"
-  run_retropie_packages "$_package" clean || return
-  run_retropie_packages "$_package" || return
 }
 
 function set_retroarch_option() {
@@ -567,32 +567,6 @@ function action_raspbian_setup() {
   disable_network_wait || return
 }
 
-function action_configure_bluetooth() {
-  local _adapter
-  local _device
-  show_banner "Bluetooth Configuration"
-
-  # stop bluetooth service
-  show_message "Stopping bluetooth service ..."
-  run_systemctl "stop" "bluetooth" || return
-
-  # configure bluetooth devices
-  for _adapter in $(get_bluetooth_adapters); do
-    for _device in "${!BLUETOOTH_DEVICE_INFO[@]}"; do
-      show_message "Configuring adapter '%s' with device '%s' ..." \
-        "$_adapter" "$_device"
-      write_bluetooth_info "$_adapter" "$_device" \
-        "${BLUETOOTH_DEVICE_INFO[$_device]}" || return
-      write_bluetooth_cache "$_adapter" "$_device" \
-        "${BLUETOOTH_DEVICE_CACHE[$_device]}" || return
-    done
-  done
-
-  # start bluetooth service
-  show_message "Starting bluetooth service ..."
-  run_systemctl "start" "bluetooth" || return
-}
-
 function action_retropie_setup() {
   show_banner "RetroPie Setup"
 
@@ -637,6 +611,32 @@ function action_configure_retropie() {
   # enable autostart
   show_message "Enabling autostart ..."
   run_retropie_packages "autostart" "enable" || return
+}
+
+function action_configure_bluetooth() {
+  local _adapter
+  local _device
+  show_banner "Bluetooth Configuration"
+
+  # stop bluetooth service
+  show_message "Stopping bluetooth service ..."
+  run_systemctl "stop" "bluetooth" || return
+
+  # configure bluetooth devices
+  for _adapter in $(get_bluetooth_adapters); do
+    for _device in "${!BLUETOOTH_DEVICE_INFO[@]}"; do
+      show_message "Configuring adapter '%s' with device '%s' ..." \
+        "$_adapter" "$_device"
+      write_bluetooth_info "$_adapter" "$_device" \
+        "${BLUETOOTH_DEVICE_INFO[$_device]}" || return
+      write_bluetooth_cache "$_adapter" "$_device" \
+        "${BLUETOOTH_DEVICE_CACHE[$_device]}" || return
+    done
+  done
+
+  # start bluetooth service
+  show_message "Starting bluetooth service ..."
+  run_systemctl "start" "bluetooth" || return
 }
 
 function action_configure_emulators() {
