@@ -515,7 +515,7 @@ EOF
 # Actions
 
 function action_apt_setup() {
-  local -r _bluez_packages
+  local _bluez_packages
   show_banner "APT Setup"
 
   # enable testing suite
