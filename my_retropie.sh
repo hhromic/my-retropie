@@ -757,10 +757,10 @@ function my_retropie() {
       action_apt_setup || return
       action_raspbian_update || return
       action_raspbian_setup || return
-      action_configure_bluetooth || return
       action_retropie_setup || return
       action_install_packages || return
       action_configure_retropie || return
+      action_configure_bluetooth || return
       action_configure_emulators || return
       action_configure_videomodes || return
       action_configure_shaders || return
