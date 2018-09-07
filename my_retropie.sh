@@ -570,7 +570,7 @@ function action_configure_bluetooth() {
 
   # stop bluetooth service
   show_message "Stopping bluetooth service ..."
-  systemctl stop bluetooth || return
+  sudo systemctl stop bluetooth || return
 
   # configure bluetooth devices
   for _adapter in $(get_bluetooth_adapters); do
@@ -586,7 +586,7 @@ function action_configure_bluetooth() {
 
   # start bluetooth service
   show_message "Starting bluetooth service ..."
-  systemctl start bluetooth || return
+  sudo systemctl start bluetooth || return
 }
 
 function action_retropie_setup() {
