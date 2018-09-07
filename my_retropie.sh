@@ -198,7 +198,8 @@ EOF
 # Helpers
 
 function print() {
-  local -r _format="$1"; shift
+  local -r _format="$1"
+  shift
   # shellcheck disable=SC2059
   printf "$_format" "$@"
 }
@@ -212,8 +213,10 @@ function println() {
 }
 
 function ansi_code() {
-  local _token; for _token in "$@"; do
-    local -i _code=-1
+  local _token
+  local -i _code
+  for _token in "$@"; do
+    _code=-1
     case "$_token" in
       reset)       _code=0 ;;
       bold)        _code=1 ;;
@@ -243,12 +246,13 @@ function ansi_code() {
 }
 
 function confirm() {
+  local _ans
   ansi_code reset && new_line && print "%s (" "$@" &&
   ansi_code fg_green && print "y" &&
   ansi_code reset && print "/" &&
   ansi_code fg_red && print "[N]" &&
   ansi_code reset && print ") "
-  local _ans; read -r _ans
+  read -r _ans
   case "$_ans" in
     y*|Y*) return 0 ;;
     *) return 1 ;;
@@ -279,18 +283,22 @@ function show_message() {
 
 function show_variables() {
   function _show_var() {
-    local -r _label="$1"; shift
+    local -r _label="$1"
+    shift
     ansi_code reset fg_magenta && print "%s" "$_label" &&
     ansi_code bold && print " = " &&
     ansi_code reset && println "%s " "$@"
   }
   function _show_arr() {
     local -r _label="$1"
+    local _keys
+    local _key
+    local _value
     ansi_code reset fg_magenta && print "%s" "$_label" &&
     ansi_code bold && println " = " && ansi_code reset
-    local _keys; eval _keys=\(\"\$\{!"$2"\[@\]\}\"\)
-    local _key; for _key in "${_keys[@]}"; do
-      local _value; eval _value=\"\$\{"$2"\[\"\$_key\"\]\}\"
+    eval _keys=\(\"\$\{!"$2"\[@\]\}\"\)
+    for _key in "${_keys[@]}"; do
+      eval _value=\"\$\{"$2"\[\"\$_key\"\]\}\"
       print "[" && ansi_code bold && print "%s" "$_key" &&
       ansi_code reset && println "]=%s" "$_value"
     done
@@ -370,7 +378,8 @@ EOF
 
 function set_hostname() { # adapted from raspi-config
   local -r _hostname="$1"
-  local _current; _current="$(tr -d $'\t'$'\n'$'\r' < /etc/hostname)"
+  local _current
+  _current="$(tr -d $'\t'$'\n'$'\r' < /etc/hostname)"
   sudo bash <<EOF
 printf "%s"\$'\\n' "$_hostname" > /etc/hostname || exit
 sed -e "s/127.0.1.1.*$_current/127.0.1.1"\$'\\t'"$_hostname/g" \
@@ -404,7 +413,8 @@ function write_bluetooth_info() {
   local -r _adapter="$1"
   local -r _device="$2"
   local -r _data="$3"
-  local _filename; _filename="$(print "$BLUEZ_INFO_FILE" "$_adapter" "$_device")"
+  local _filename
+  _filename="$(print "$BLUEZ_INFO_FILE" "$_adapter" "$_device")"
   mkdirparents "$_filename" "0077" || return
   println "$_data" > "$_filename" || return
 }
@@ -413,7 +423,8 @@ function write_bluetooth_cache() {
   local -r _adapter="$1"
   local -r _device="$2"
   local -r _data="$3"
-  local _filename; _filename="$(print "$BLUEZ_CACHE_FILE" "$_adapter" "$_device")"
+  local _filename
+  _filename="$(print "$BLUEZ_CACHE_FILE" "$_adapter" "$_device")"
   mkdirparents "$_filename" "0077" || return
   println "$_data" > "$_filename" || return
 }
@@ -424,7 +435,8 @@ function run_retropie_packages() {
 
 function install_package_from_binary() {
   local -r _package="$1"
-  local _action; for _action in depends install_bin configure; do
+  local _action
+  for _action in depends install_bin configure; do
     run_retropie_packages "$_package" "$_action" || return
   done
 }
@@ -469,9 +481,10 @@ function configure_kcmdline() {
 function _set_option() {
   local -r _option="$1"
   local _value="$2"
-  [[ -n "$_value" ]] && _value="=$_value"
   local -i _found=0
-  local -i _idx=0; while [[ $_idx -lt ${#CMDLINE[@]} ]]; do
+  local -i _idx=0
+  [[ -n "$_value" ]] && _value="=$_value"
+  while [[ $_idx -lt ${#CMDLINE[@]} ]]; do
     if [[ "${CMDLINE[$_idx]}" =~ ^$_option(=|$) ]]; then
       CMDLINE[$_idx]="$_option$_value"
       _found=1
@@ -502,6 +515,7 @@ EOF
 # Actions
 
 function action_apt_setup() {
+  local -r _bluez_packages
   show_banner "APT Setup"
 
   # enable testing suite
@@ -514,7 +528,7 @@ function action_apt_setup() {
 
   # configure bluez packages preference
   show_message "Configuring bluez packages preference ..."
-  local -r _bluez_packages=(
+  _bluez_packages=(
     bluetooth bluez bluez-cups bluez-hcidump bluez-obexd bluez-test-scripts
     bluez-test-tools libbluetooth-dev libbluetooth3 bluez-firmware
   )
@@ -550,6 +564,8 @@ function action_raspbian_setup() {
 }
 
 function action_configure_bluetooth() {
+  local _adapter
+  local _device
   show_banner "Bluetooth Configuration"
 
   # stop bluetooth service
@@ -557,8 +573,8 @@ function action_configure_bluetooth() {
   systemctl stop bluetooth || return
 
   # configure bluetooth devices
-  local _adapter; for _adapter in $(get_bluetooth_adapters); do
-    local _device; for _device in "${!BLUETOOTH_DEVICE_INFO[@]}"; do
+  for _adapter in $(get_bluetooth_adapters); do
+    for _device in "${!BLUETOOTH_DEVICE_INFO[@]}"; do
       show_message "Configuring adapter '%s' with device '%s' ..." \
         "$_adapter" "$_device"
       write_bluetooth_info "$_adapter" "$_device" \
@@ -582,16 +598,17 @@ function action_retropie_setup() {
 }
 
 function action_install_packages() {
+  local _package
   show_banner "RetroPie Packages Installation"
 
   # install packages from binary
-  local _package; for _package in "${PACKAGES_BINARY[@]}"; do
+  for _package in "${PACKAGES_BINARY[@]}"; do
     show_message "Installing '%s' package from binary ..." "$_package"
     install_package_from_binary "$_package" || return
   done
 
   # install packages from source
-  local _package; for _package in "${PACKAGES_SOURCE[@]}"; do
+  for _package in "${PACKAGES_SOURCE[@]}"; do
     show_message "Installing '%s' package from source ..." "$_package"
     install_package_from_source "$_package" || return
   done
@@ -619,10 +636,14 @@ function action_configure_retropie() {
 }
 
 function action_configure_emulators() {
+  local _system
+  local _filename
   show_banner "Default Emulators Configuration"
-  local _system; for _system in "${!EMULATOR[@]}"; do
+
+  # configure default emulator for each system
+  for _system in "${!EMULATOR[@]}"; do
     show_message "Configuring '%s' system ..." "$_system"
-    local _filename; _filename="$(print "$EMULATORS_FILE" "$_system")"
+    _filename="$(print "$EMULATORS_FILE" "$_system")"
     if [[ -f "$_filename" ]]; then
       sed -E "/^default ?=/d" -i "$_filename" || return
     fi
@@ -632,8 +653,11 @@ function action_configure_emulators() {
 }
 
 function action_configure_videomodes() {
+  local _emulator
   show_banner "Default Video Modes Configuration"
-  local _emulator; for _emulator in "${!VIDEO_MODE[@]}"; do
+
+  # configure video mode for each emulator
+  for _emulator in "${!VIDEO_MODE[@]}"; do
     show_message "Configuring '%s' emulator ..." "$_emulator"
     if [[ -f "$VIDEO_MODES_FILE" ]]; then
       sed -E "/^$_emulator ?=/d" -i "$VIDEO_MODES_FILE" || return
@@ -644,6 +668,8 @@ function action_configure_videomodes() {
 }
 
 function action_configure_shaders() {
+  local _core_name
+  local _shader_type
   show_banner "Retroarch Video Shaders Configuration"
 
   # enable video shader option
@@ -651,26 +677,28 @@ function action_configure_shaders() {
   set_retroarch_option "video_shader_enable" "true" || return
 
   # configure video shaders
-  local _core_name; for _core_name in "${!SHADER_PRESET_TYPE[@]}"; do
+  for _core_name in "${!SHADER_PRESET_TYPE[@]}"; do
     show_message "Configuring libretro core name '%s' ..." "$_core_name"
-    local _shader_type="${SHADER_PRESET_TYPE[$_core_name]}"
+    _shader_type="${SHADER_PRESET_TYPE[$_core_name]}"
     write_shader_preset "$_core_name" \
       "${SHADER_PRESET[$_shader_type]}" || return
   done
 }
 
 function action_configure_joypads() {
+  local _joypad
+  local _player
   show_banner "Retroarch Joypads Configuration"
 
   # configure joypads mappings
-  local _joypad; for _joypad in "${!JOYPAD_MAPPING[@]}"; do
+  for _joypad in "${!JOYPAD_MAPPING[@]}"; do
     show_message "Configuring mapping for joypad '%s' ..." "$_joypad"
     write_joypad_mapping "$_joypad" \
       "${JOYPAD_MAPPING[$_joypad]}" || return
   done
 
   # configure joypad indices
-  local _player; for _player in "${!JOYPAD_INDEX[@]}"; do
+  for _player in "${!JOYPAD_INDEX[@]}"; do
     show_message "Configuring joypad index for player '%s' ..." "$_player"
     set_retroarch_option "input_player${_player}_joypad_index" \
       "${JOYPAD_INDEX[$_player]}" || return
