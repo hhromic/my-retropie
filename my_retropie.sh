@@ -445,9 +445,9 @@ function set_retroarch_option {
 function write_shader_preset {
   local -r _core_name="$1"
   local -r _preset="$2"
-  local -r _base_dir="$SHADERS_PRESETS_DIR"/"$_core_name"
-  mkdir -p "$_base_dir" || return
-  println "$_preset" > "$_base_dir"/"$_core_name".glslp || return
+  local -r _filename="$SHADERS_PRESETS_DIR"/"$_core_name"/"$_core_name".glslp
+  mkdirparents "$_filename" || return
+  println "$_preset" > "$_filename" || return
 }
 
 function write_joypad_mapping {
