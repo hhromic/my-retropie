@@ -5,6 +5,15 @@
 #===============================================================================
 # Files and directories
 
+# bluez storage directory
+BLUEZ_STORAGE_DIR=/var/lib/bluetooth
+
+# bluez device info file
+BLUEZ_INFO_FILE=$BLUEZ_STORAGE_DIR/%s/%s/info
+
+# bluez device cache file
+BLUEZ_CACHE_FILE=$BLUEZ_STORAGE_DIR/%s/cache/%s
+
 # RetroPie base directory
 RETROPIE_BASE_DIR=$HOME/RetroPie-Setup
 
@@ -43,6 +52,14 @@ DEVICE_HOSTNAME=retropie
 
 # device timezone
 DEVICE_TIMEZONE=Etc/UTC
+
+# info data for bluetooth devices
+declare -A BLUETOOTH_DEVICE_INFO
+BLUETOOTH_DEVICE_INFO=()
+
+# cache data for bluetooth devices
+declare -A BLUETOOTH_DEVICE_CACHE
+BLUETOOTH_DEVICE_CACHE=()
 
 #===============================================================================
 # RetroPie Configuration
@@ -238,6 +255,12 @@ function confirm {
   esac
 }
 
+function mkdirparents {
+  local -r _filename="$1"
+  local -r _umask="$2"
+  ([[ -n "$_umask" ]] && umask "$_umask"; mkdir -p "${_filename%/*}")
+}
+
 function show_banner {
   ansi_code reset && new_line &&
   ansi_code bold fg_red &&
@@ -274,40 +297,74 @@ function show_variables {
   }
 
   show_message "Files and directories" && new_line &&
-  _show_var "RETROPIE_BASE_DIR    " "$RETROPIE_BASE_DIR" &&
-  _show_var "CONFIGS_BASE_DIR     " "$CONFIGS_BASE_DIR" &&
-  _show_var "VIDEO_MODES_FILE     " "$VIDEO_MODES_FILE" &&
-  _show_var "RETROARCH_CONFIG_FILE" "$RETROARCH_CONFIG_FILE" &&
-  _show_var "SHADERS_BASE_DIR     " "$SHADERS_BASE_DIR" &&
-  _show_var "SHADERS_DIR          " "$SHADERS_DIR" &&
-  _show_var "SHADERS_PRESETS_DIR  " "$SHADERS_PRESETS_DIR" &&
-  _show_var "JOYPADS_DIR          " "$JOYPADS_DIR" &&
-  _show_var "ES_INPUT_FILE        " "$ES_INPUT_FILE" &&
+  _show_var "BLUEZ_STORAGE_DIR     " "$BLUEZ_STORAGE_DIR" &&
+  _show_var "BLUEZ_INFO_FILE       " "$BLUEZ_INFO_FILE" &&
+  _show_var "BLUEZ_CACHE_FILE      " "$BLUEZ_CACHE_FILE" &&
+  _show_var "RETROPIE_BASE_DIR     " "$RETROPIE_BASE_DIR" &&
+  _show_var "CONFIGS_BASE_DIR      " "$CONFIGS_BASE_DIR" &&
+  _show_var "VIDEO_MODES_FILE      " "$VIDEO_MODES_FILE" &&
+  _show_var "RETROARCH_CONFIG_FILE " "$RETROARCH_CONFIG_FILE" &&
+  _show_var "SHADERS_BASE_DIR      " "$SHADERS_BASE_DIR" &&
+  _show_var "SHADERS_DIR           " "$SHADERS_DIR" &&
+  _show_var "SHADERS_PRESETS_DIR   " "$SHADERS_PRESETS_DIR" &&
+  _show_var "JOYPADS_DIR           " "$JOYPADS_DIR" &&
+  _show_var "ES_INPUT_FILE         " "$ES_INPUT_FILE" &&
 
   show_message "Raspbian configuration" && new_line &&
-  _show_var "DEVICE_HOSTNAME      " "$DEVICE_HOSTNAME" &&
-  _show_var "DEVICE_TIMEZONE      " "$DEVICE_TIMEZONE" &&
+  _show_var "DEVICE_HOSTNAME       " "$DEVICE_HOSTNAME" &&
+  _show_var "DEVICE_TIMEZONE       " "$DEVICE_TIMEZONE" &&
+  _show_arr "BLUETOOTH_DEVICE_INFO " "BLUETOOTH_DEVICE_INFO" &&
+  _show_arr "BLUETOOTH_DEVICE_CACHE" "BLUETOOTH_DEVICE_CACHE" &&
 
   show_message "RetroPie configuration" && new_line &&
-  _show_var "RETROPIE_REPOSITORY  " "$RETROPIE_REPOSITORY" &&
-  _show_var "PACKAGES_BINARY      " "${PACKAGES_BINARY[@]}" &&
-  _show_var "PACKAGES_SOURCE      " "${PACKAGES_SOURCE[@]}" &&
-  _show_arr "EMULATOR             " "EMULATOR" &&
-  _show_arr "VIDEO_MODE           " "VIDEO_MODE" &&
-  _show_arr "SHADER_PRESET_TYPE   " "SHADER_PRESET_TYPE" &&
-  _show_arr "SHADER_PRESET        " "SHADER_PRESET" &&
-  _show_arr "JOYPAD_MAPPING       " "JOYPAD_MAPPING" &&
-  _show_arr "JOYPAD_INDEX         " "JOYPAD_INDEX" &&
-  _show_var "ES_INPUT             " $'\n'"$ES_INPUT"
+  _show_var "RETROPIE_REPOSITORY   " "$RETROPIE_REPOSITORY" &&
+  _show_var "PACKAGES_BINARY       " "${PACKAGES_BINARY[@]}" &&
+  _show_var "PACKAGES_SOURCE       " "${PACKAGES_SOURCE[@]}" &&
+  _show_arr "EMULATOR              " "EMULATOR" &&
+  _show_arr "VIDEO_MODE            " "VIDEO_MODE" &&
+  _show_arr "SHADER_PRESET_TYPE    " "SHADER_PRESET_TYPE" &&
+  _show_arr "SHADER_PRESET         " "SHADER_PRESET" &&
+  _show_arr "JOYPAD_MAPPING        " "JOYPAD_MAPPING" &&
+  _show_arr "JOYPAD_INDEX          " "JOYPAD_INDEX" &&
+  _show_var "ES_INPUT              " $'\n'"$ES_INPUT"
 }
 
 #===============================================================================
 # Actions helpers
 
+function enable_apt_suite {
+  local -r _suite="$1"
+  sudo bash <<EOF
+grep "^deb" /etc/apt/sources.list | awk "{\\\$3=\"$_suite\"}1" \
+  > /etc/apt/sources.list.d/"$_suite".list || exit
+EOF
+}
+
+function set_apt_preference {
+  local -r _filename="$1"
+  local -r _package="$2"
+  local -r _suite="$3"
+  local -r _priority="$4"
+  sudo bash <<EOF
+cat > /etc/apt/preferences.d/"$_filename" <<EOF_2
+Package: $_package
+Pin: release a=$_suite
+Pin-Priority: $_priority
+EOF_2
+EOF
+}
+
 function update_apt_packages {
   sudo bash <<"EOF"
 apt-get -y update
 apt-get -y dist-upgrade
+EOF
+}
+
+function install_apt_required_packages {
+  sudo bash <<"EOF"
+apt-get -y install git ca-certificates \
+  bluetooth bluez bluez-firmware libbluetooth3
 EOF
 }
 
@@ -336,6 +393,29 @@ if [[ -f /etc/systemd/system/dhcpcd.service.d/wait.conf ]]; then
   rm -f /etc/systemd/system/dhcpcd.service.d/wait.conf || exit
 fi
 EOF
+}
+
+function get_bluetooth_adapters {
+  hciconfig | grep -o -E "([[:xdigit:]]{1,2}:){5}[[:xdigit:]]{1,2}" \
+    | tr "[:lower:]" "[:upper:]"
+}
+
+function write_bluetooth_info {
+  local -r _adapter="$1"
+  local -r _device="$2"
+  local -r _data="$3"
+  local _filename; _filename="$(print "$BLUEZ_INFO_FILE" "$_adapter" "$_device")"
+  mkdirparents "$_filename" "0077" || return
+  println "$_data" > "$_filename" || return
+}
+
+function write_bluetooth_cache {
+  local -r _adapter="$1"
+  local -r _device="$2"
+  local -r _data="$3"
+  local _filename; _filename="$(print "$BLUEZ_CACHE_FILE" "$_adapter" "$_device")"
+  mkdirparents "$_filename" "0077" || return
+  println "$_data" > "$_filename" || return
 }
 
 function run_retropie_packages {
@@ -421,6 +501,26 @@ EOF
 #===============================================================================
 # Actions
 
+function action_apt_setup {
+  show_banner "APT Setup"
+
+  # enable testing suite
+  show_message "Enabling 'testing' suite ..."
+  enable_apt_suite "testing" || return
+
+  # configure testing suite preference
+  show_message "Configuring 'testing' suite preference ..."
+  set_apt_preference "testing" "*" "testing" "-10"
+
+  # configure bluez packages preference
+  show_message "Configuring bluez packages preference ..."
+  local -r _bluez_packages=(
+    bluetooth bluez bluez-cups bluez-hcidump bluez-obexd bluez-test-scripts
+    bluez-test-tools libbluetooth-dev libbluetooth3 bluez-firmware
+  )
+  set_apt_preference "bluez" "${_bluez_packages[*]}" "testing" "900"
+}
+
 function action_raspbian_update {
   show_banner "Raspbian Update"
 
@@ -431,6 +531,10 @@ function action_raspbian_update {
 
 function action_raspbian_setup {
   show_banner "Raspbian Setup"
+
+  # install required apt packages
+  show_message "Installing required APT packages ..."
+  install_apt_required_packages || return
 
   # configure device hostname
   show_message "Configuring device hostname to '%s' ..." "$DEVICE_HOSTNAME"
@@ -443,6 +547,30 @@ function action_raspbian_setup {
   # disable network wait during boot
   show_message "Disabling network wait during boot ..."
   disable_network_wait || return
+}
+
+function action_configure_bluetooth {
+  show_banner "Bluetooth Configuration"
+
+  # stop bluetooth service
+  show_message "Stopping bluetooth service ..."
+  systemctl stop bluetooth || return
+
+  # configure bluetooth devices
+  local _adapter; for _adapter in $(get_bluetooth_adapters); do
+    local _device; for _device in "${!BLUETOOTH_DEVICE_INFO[@]}"; do
+      show_message "Configuring adapter '%s' with device '%s' ..." \
+        "$_adapter" "$_device"
+      write_bluetooth_info "$_adapter" "$_device" \
+        "${BLUETOOTH_DEVICE_INFO[$_device]}" || return
+      write_bluetooth_cache "$_adapter" "$_device" \
+        "${BLUETOOTH_DEVICE_CACHE[$_device]}" || return
+    done
+  done
+
+  # start bluetooth service
+  show_message "Starting bluetooth service ..."
+  systemctl start bluetooth || return
 }
 
 function action_retropie_setup {
@@ -472,8 +600,8 @@ function action_install_packages {
 function action_configure_retropie {
   show_banner "RetroPie Configuration"
 
-  # get bluetooth depends
-  show_message "Getting bluetooth depends ..."
+  # install bluetooth dependencies
+  show_message "Installing bluetooth dependencies ..."
   run_retropie_packages "bluetooth" "depends" || return
 
   # enable required kernel modules
@@ -598,8 +726,10 @@ function my_retropie {
     *)
       show_message "Action: COMPLETE SETUP"
       confirm "Continue?" || return
+      action_apt_setup || return
       action_raspbian_update || return
       action_raspbian_setup || return
+      action_configure_bluetooth || return
       action_retropie_setup || return
       action_install_packages || return
       action_configure_retropie || return
