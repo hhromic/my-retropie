@@ -42,7 +42,7 @@ SHADERS_PRESETS_DIR=$SHADERS_BASE_DIR/presets
 AUTOCONFIG_DIR=$CONFIGS_BASE_DIR/all/retroarch/autoconfig
 
 # emulationstation input config file
-ES_INPUT_FILE=$HOME/.emulationstation/es_input.cfg
+ES_INPUT_FILE=$CONFIGS_BASE_DIR/all/emulationstation/es_input.cfg
 
 #===============================================================================
 # Raspbian Configuration
