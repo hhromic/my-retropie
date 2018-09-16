@@ -61,6 +61,10 @@ BLUETOOTH_DEVICE_INFO=()
 declare -A BLUETOOTH_DEVICE_CACHE
 BLUETOOTH_DEVICE_CACHE=()
 
+# device-tree overlays
+declare -A DTOVERLAY
+DTOVERLAY=()
+
 #===============================================================================
 # RetroPie Configuration
 
@@ -317,6 +321,7 @@ function show_variables() {
   _show_var "DEVICE_TIMEZONE       " "$DEVICE_TIMEZONE" &&
   _show_arr "BLUETOOTH_DEVICE_INFO " "BLUETOOTH_DEVICE_INFO" &&
   _show_arr "BLUETOOTH_DEVICE_CACHE" "BLUETOOTH_DEVICE_CACHE" &&
+  _show_arr "DTOVERLAY             " "DTOVERLAY" &&
 
   show_message "RetroPie configuration" && new_line &&
   _show_var "RETROPIE_REPOSITORY   " "$RETROPIE_REPOSITORY" &&
@@ -480,6 +485,19 @@ if grep -q "^$_option=" /boot/config.txt 2>/dev/null; then
   sed -e "/^$_option=/ c\\$_option=$_value" -i /boot/config.txt || exit
 else
   printf "%s=%s"$'\\n' "$_option" "$_value" >> /boot/config.txt || exit
+fi
+EOF
+}
+
+function set_rpiconfig_dtoverlay() {
+  local -r _dtoverlay="$1"
+  local _params="$2"
+  [[ -n "$_params" ]] && _params=":$_params"
+  sudo bash <<EOF
+if grep -E -q '^dtoverlay=$_dtoverlay([,:]|\$)' /boot/config.txt 2>/dev/null; then
+  sed -E "/^dtoverlay=$_dtoverlay([,:]|\$)/ c\\dtoverlay=$_dtoverlay$_params" -i /boot/config.txt || exit
+else
+  printf "dtoverlay=%s%s"$'\\n' "$_dtoverlay" "$_params" >> /boot/config.txt || exit
 fi
 EOF
 }
@@ -737,6 +755,18 @@ function action_configure_quietmode() {
   configure_kcmdline || return
 }
 
+function action_configure_dtoverlays() {
+  local _dtoverlay
+  show_banner "Device-Tree Overlays Configuration"
+
+  # configure dt overlay and parameters
+  for _dtoverlay in "${!DTOVERLAY[@]}"; do
+    show_message "Configuring DT overlay '%s' ..." "$_dtoverlay"
+    set_rpiconfig_dtoverlay "$_dtoverlay" \
+      "${DTOVERLAY[$_dtoverlay]}" || return
+  done
+}
+
 function action_clean() {
   show_banner "System Clean"
 
@@ -775,6 +805,7 @@ function my_retropie() {
       action_configure_joypads || return
       action_configure_es || return
       action_configure_quietmode || return
+      action_configure_dtoverlays || return
       action_clean || return
       ;;
   esac
