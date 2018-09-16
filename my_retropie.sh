@@ -38,8 +38,8 @@ SHADERS_DIR=$SHADERS_BASE_DIR/shaders
 # shaders presets directory
 SHADERS_PRESETS_DIR=$SHADERS_BASE_DIR/presets
 
-# retroarch joypads directory
-JOYPADS_DIR=$CONFIGS_BASE_DIR/all/retroarch-joypads
+# retroarch autoconfig directory
+AUTOCONFIG_DIR=$CONFIGS_BASE_DIR/all/retroarch/autoconfig
 
 # emulationstation input config file
 ES_INPUT_FILE=$HOME/.emulationstation/es_input.cfg
@@ -313,7 +313,7 @@ function show_variables() {
   _show_var "SHADERS_BASE_DIR      " "$SHADERS_BASE_DIR" &&
   _show_var "SHADERS_DIR           " "$SHADERS_DIR" &&
   _show_var "SHADERS_PRESETS_DIR   " "$SHADERS_PRESETS_DIR" &&
-  _show_var "JOYPADS_DIR           " "$JOYPADS_DIR" &&
+  _show_var "AUTOCONFIG_DIR        " "$AUTOCONFIG_DIR" &&
   _show_var "ES_INPUT_FILE         " "$ES_INPUT_FILE" &&
 
   show_message "Raspbian configuration" && new_line &&
@@ -474,7 +474,7 @@ function write_shader_preset() {
 function write_joypad_mapping() {
   local -r _joypad="$1"
   local -r _mapping="$2"
-  println "$_mapping" > "$JOYPADS_DIR"/"$_joypad".cfg || return
+  println "$_mapping" > "$AUTOCONFIG_DIR"/"$_joypad".cfg || return
 }
 
 function set_rpiconfig_option() {
