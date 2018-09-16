@@ -472,10 +472,14 @@ function write_joypad_mapping() {
   println "$_mapping" > "$JOYPADS_DIR"/"$_joypad".cfg || return
 }
 
-function disable_splash() {
-  sudo bash <<"EOF"
-if ! grep -q "^disable_splash=" /boot/config.txt 2>/dev/null; then
-  printf "%s"$'\n' "disable_splash=1" >> /boot/config.txt || exit
+function set_rpiconfig_option() {
+  local -r _option="$1"
+  local -r _value="$2"
+  sudo bash <<EOF
+if grep -q "^$_option=" /boot/config.txt 2>/dev/null; then
+  sed -e "/^$_option=/ c\\$_option=$_value" -i /boot/config.txt || exit
+else
+  printf "%s=%s"$'\\n' "$_option" "$_value" >> /boot/config.txt || exit
 fi
 EOF
 }
@@ -726,7 +730,7 @@ function action_configure_quietmode() {
 
   # disable boot rainbow splash screen
   show_message "Disabling boot rainbow splash screen ..."
-  disable_splash || return
+  set_rpiconfig_option "disable_splash" "1" || return
 
   # configure kernel cmdline for quiet boot
   show_message "Configuring kernel cmdline ..."
