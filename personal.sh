@@ -70,7 +70,7 @@ EOF
 )
 
 # device-tree overlays
-DT_OVERLAY=(
+DTOVERLAY=(
   [gpio-poweroff]="gpiopin=17,active_low=1"
   [gpio-shutdown]="gpio_pin=18,active_low=0,gpio_pull=1"
 )
