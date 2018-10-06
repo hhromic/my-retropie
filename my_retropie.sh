@@ -502,6 +502,19 @@ fi
 EOF
 }
 
+function enable_autologin_skip_login() {
+  sudo bash <<"EOF"
+mkdir -p /etc/systemd/system/autologin@.service.d || exit
+cat > /etc/systemd/system/autologin@.service.d/skip-login.conf <<EOF_2 || exit
+[Service]
+ExecStart=
+EOF_2
+grep "^ExecStart=-/sbin/agetty --autologin [^[:space:]]*" /etc/systemd/system/autologin@.service \
+  | sed "s#^ExecStart=-/sbin/agetty --autologin [^[:space:]]*#\\0 --skip-login#" \
+  >> /etc/systemd/system/autologin@.service.d/skip-login.conf
+EOF
+}
+
 function configure_kcmdline() {
   sudo bash <<"EOF"
 function _set_option() {
@@ -745,6 +758,11 @@ function action_configure_quietmode() {
   # enable hush login
   show_message "Enabling hush login ..."
   touch "$HOME"/.hushlogin || return
+
+  # enable skip-login in autologin
+  show_message "Enabling skip-login in autologin ..."
+  enable_autologin_skip_login || return
+  run_systemctl "daemon-reload" || return
 
   # disable boot rainbow splash screen
   show_message "Disabling boot rainbow splash screen ..."
