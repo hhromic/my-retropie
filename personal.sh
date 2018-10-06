@@ -209,6 +209,23 @@ read -r -d "" ES_INPUT <<"EOF"
 EOF
 
 #===============================================================================
+# Post-setup hook
+
+function my_retropie_setup_hook() {
+  # disable video threaded option in retroarch
+  show_message "Disabling video threaded option in retroarch ..."
+  set_retroarch_option "video_threaded" "false" || return
+
+  # set threaded audio driver in retroarch
+  show_message "Setting threaded audio driver in retroarch ..."
+  set_retroarch_option "audio_driver" "alsathread" || return
+
+  # disable menu in runcommand
+  show_message "Disabling menu in runcommand ..."
+  set_runcommand_option "disable_menu" "1" || return
+}
+
+#===============================================================================
 # Run MyRetropie
 
 my_retropie "$@" || exit

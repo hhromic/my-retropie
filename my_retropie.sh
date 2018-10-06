@@ -804,6 +804,20 @@ function action_clean() {
   clean_apt || return
 }
 
+function action_post_upgrade_hook() {
+  if [[ "$(type -t my_retropie_upgrade_hook)" = "function" ]]; then
+    show_banner "Post-Upgrade Hook"
+    my_retropie_upgrade_hook || return
+  fi
+}
+
+function action_post_setup_hook() {
+  if [[ "$(type -t my_retropie_setup_hook)" = "function" ]]; then
+    show_banner "Post-Setup Hook"
+    my_retropie_setup_hook || return
+  fi
+}
+
 #===============================================================================
 # Action dispatcher
 
@@ -817,6 +831,7 @@ function my_retropie() {
       action_raspbian_update || return
       action_install_packages || return
       action_clean || return
+      action_post_upgrade_hook || return
       ;;
     *)
       show_message "Action: COMPLETE SETUP"
@@ -836,6 +851,7 @@ function my_retropie() {
       action_configure_quietmode || return
       action_configure_dtoverlays || return
       action_clean || return
+      action_post_setup_hook || return
       ;;
   esac
   show_banner "MyRetroPie finished !" && new_line
