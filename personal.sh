@@ -223,6 +223,13 @@ function my_retropie_setup_hook() {
   # disable menu in runcommand
   show_message "Disabling menu in runcommand ..."
   set_runcommand_option "disable_menu" "1" || return
+
+  # configure autostart to stop splashscreen sooner
+  show_message "Configuring autostart to stop splashscreen sooner ..."
+  if ! grep -q "systemctl stop asplashscreen" "$CONFIGS_BASE_DIR"/all/autostart.sh; then
+    sed -e "/^emulationstation /i (sleep 2 \\&\\& systemctl is-active --quiet asplashscreen \\&\\& sudo systemctl stop asplashscreen) \\&" \
+      -i "$CONFIGS_BASE_DIR"/all/autostart.sh || return
+  fi
 }
 
 #===============================================================================
