@@ -20,6 +20,9 @@ RETROPIE_BASE_DIR=$HOME/RetroPie-Setup
 # config files base directory
 CONFIGS_BASE_DIR=/opt/retropie/configs
 
+# runcommand config file
+RUNCOMMAND_CONFIG_FILE=$CONFIGS_BASE_DIR/all/runcommand.cfg
+
 # emulators config file
 EMULATORS_FILE=$CONFIGS_BASE_DIR/%s/emulators.cfg
 
@@ -308,6 +311,7 @@ function show_variables() {
   _show_var "BLUEZ_CACHE_FILE      " "$BLUEZ_CACHE_FILE" &&
   _show_var "RETROPIE_BASE_DIR     " "$RETROPIE_BASE_DIR" &&
   _show_var "CONFIGS_BASE_DIR      " "$CONFIGS_BASE_DIR" &&
+  _show_var "RUNCOMMAND_CONFIG_FILE" "$RUNCOMMAND_CONFIG_FILE" &&
   _show_var "VIDEO_MODES_FILE      " "$VIDEO_MODES_FILE" &&
   _show_var "RETROARCH_CONFIG_FILE " "$RETROARCH_CONFIG_FILE" &&
   _show_var "SHADERS_BASE_DIR      " "$SHADERS_BASE_DIR" &&
@@ -454,6 +458,13 @@ umask 0077
 mkdir -p "${_filename%/*}" || exit
 printf "$_data"$'\\n' > "$_filename" || exit
 EOF
+}
+
+function set_runcommand_option() {
+  local -r _option="$1"
+  local -r _value="$2"
+  sed -e "s/^.*$_option.*$/$_option = \"$_value\"/g" \
+    -i "$RUNCOMMAND_CONFIG_FILE" || return
 }
 
 function set_retroarch_option() {
