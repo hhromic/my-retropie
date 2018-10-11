@@ -76,7 +76,6 @@ RETROPIE_REPOSITORY=https://github.com/RetroPie/RetroPie-Setup
 
 # packages to be installed from binary
 PACKAGES_BINARY=(
-  retroarch
   emulationstation
   runcommand
   splashscreen
@@ -84,6 +83,7 @@ PACKAGES_BINARY=(
 
 # packages to be installed from source
 PACKAGES_SOURCE=(
+  retroarch
   lr-genesis-plus-gx
   lr-mgba
   lr-mupen64plus
