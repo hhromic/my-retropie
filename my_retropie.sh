@@ -621,6 +621,14 @@ function action_retropie_setup() {
   git clone "$RETROPIE_REPOSITORY" "$RETROPIE_BASE_DIR" || return
 }
 
+function action_retropie_update() {
+  show_banner "RetroPie Update"
+
+  # update the local RetroPie-Setup repository
+  show_message "Updating the local Retropie-Setup repository ..."
+  git -C "$RETROPIE_BASE_DIR" pull -p || return
+}
+
 function action_install_packages() {
   local _package
   show_banner "RetroPie Packages Installation"
@@ -829,6 +837,7 @@ function my_retropie() {
       show_message "Action: UPGRADE INSTALLATION"
       confirm "Continue?" || return
       action_raspbian_update || return
+      action_retropie_update || return
       action_install_packages || return
       action_clean || return
       action_post_upgrade_hook || return
