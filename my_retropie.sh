@@ -58,15 +58,12 @@ DEVICE_TIMEZONE=Etc/UTC
 
 # info data for bluetooth devices
 declare -A BLUETOOTH_DEVICE_INFO
-BLUETOOTH_DEVICE_INFO=()
 
 # cache data for bluetooth devices
 declare -A BLUETOOTH_DEVICE_CACHE
-BLUETOOTH_DEVICE_CACHE=()
 
 # device-tree overlays
 declare -A DTOVERLAY
-DTOVERLAY=()
 
 #===============================================================================
 # RetroPie Configuration
@@ -75,131 +72,31 @@ DTOVERLAY=()
 RETROPIE_REPOSITORY=https://github.com/RetroPie/RetroPie-Setup
 
 # packages to be installed from binary
-PACKAGES_BINARY=(
-  emulationstation
-  runcommand
-  splashscreen
-)
+declare -a PACKAGES_BINARY
 
 # packages to be installed from source
-PACKAGES_SOURCE=(
-  retroarch
-  lr-genesis-plus-gx
-  lr-mgba
-  lr-mupen64plus
-  lr-nestopia
-  lr-pcsx-rearmed
-  lr-snes9x
-)
+declare -a PACKAGES_SOURCE
 
 # default emulators for systems
 declare -A EMULATOR
-EMULATOR=(
-  [fds]=lr-nestopia
-  [gamegear]=lr-genesis-plus-gx
-  [gb]=lr-mgba
-  [gba]=lr-mgba
-  [gbc]=lr-mgba
-  [mastersystem]=lr-genesis-plus-gx
-  [megadrive]=lr-genesis-plus-gx
-  [n64]=lr-mupen64plus
-  [nes]=lr-nestopia
-  [psx]=lr-pcsx-rearmed
-  [segacd]=lr-genesis-plus-gx
-  [sg-1000]=lr-genesis-plus-gx
-  [snes]=lr-snes9x
-)
 
 # default video modes for emulators
 declare -A VIDEO_MODE
-VIDEO_MODE=(
-  [lr-genesis-plus-gx]=CEA-4
-  [lr-mgba]=CEA-4
-  [lr-mupen64plus]=CEA-4
-  [lr-nestopia]=CEA-4
-  [lr-pcsx-rearmed]=CEA-4
-  [lr-snes9x]=CEA-4
-)
 
 # shader preset types for libretro core names
 declare -A SHADER_PRESET_TYPE
-SHADER_PRESET_TYPE=(
-  ["mGBA"]=LCD
-  ["Genesis Plus GX"]=CRT
-  ["Nestopia"]=CRT
-  ["Mupen64Plus GLES2"]=CRT
-  ["PCSX-ReARMed"]=CRT
-  ["Snes9x"]=CRT
-)
 
 # shader presets for shader preset types
 declare -A SHADER_PRESET
-SHADER_PRESET=(
-  [CRT]="$(cat <<EOF
-shaders = "1"
-shader0 = "$SHADERS_DIR/zfast_crt_standard.glsl"
-filter_linear0 = "true"
-wrap_mode0 = "clamp_to_border"
-mipmap_input0 = "false"
-alias0 = ""
-float_framebuffer0 = "false"
-srgb_framebuffer0 = "false"
-parameters = "BLURSCALEX;LOWLUMSCAN;HILUMSCAN;BRIGHTBOOST;MASK_DARK;MASK_FADE"
-BLURSCALEX = "0.300000"
-LOWLUMSCAN = "6.000000"
-HILUMSCAN = "8.000000"
-BRIGHTBOOST = "1.250000"
-MASK_DARK = "0.250000"
-MASK_FADE = "0.800000"
-EOF
-)"
-  [LCD]="$(cat <<EOF
-shaders = "1"
-shader0 = "$SHADERS_DIR/zfast_lcd_standard.glsl"
-filter_linear0 = "true"
-wrap_mode0 = "clamp_to_border"
-mipmap_input0 = "false"
-alias0 = ""
-float_framebuffer0 = "false"
-srgb_framebuffer0 = "false"
-parameters = "BORDERMULT;GBAGAMMA"
-BORDERMULT = "3.000000"
-GBAGAMMA = "1.000000"
-EOF
-)"
-)
 
 # controller mappings for retroarch joypads
 declare -A JOYPAD_MAPPING
-JOYPAD_MAPPING=()
 
 # joypad indices for retroarch players
 declare -A JOYPAD_INDEX
-JOYPAD_INDEX=()
 
 # emulationstation input config
-read -r -d "" ES_INPUT <<EOF
-<?xml version="1.0"?>
-<inputList>
-  <inputAction type="onfinish">
-    <command>/opt/retropie/supplementary/emulationstation/scripts/inputconfiguration.sh</command>
-  </inputAction>
-  <inputConfig type="keyboard" deviceName="Keyboard" deviceGUID="-1">
-    <input name="pageup" type="key" id="113" value="1"/>
-    <input name="start" type="key" id="13" value="1"/>
-    <input name="down" type="key" id="1073741905" value="1"/>
-    <input name="pagedown" type="key" id="119" value="1"/>
-    <input name="right" type="key" id="1073741903" value="1"/>
-    <input name="select" type="key" id="1073742053" value="1"/>
-    <input name="left" type="key" id="1073741904" value="1"/>
-    <input name="up" type="key" id="1073741906" value="1"/>
-    <input name="a" type="key" id="115" value="1"/>
-    <input name="b" type="key" id="120" value="1"/>
-    <input name="x" type="key" id="97" value="1"/>
-    <input name="y" type="key" id="122" value="1"/>
-  </inputConfig>
-</inputList>
-EOF
+ES_INPUT=
 
 #===============================================================================
 # Helpers

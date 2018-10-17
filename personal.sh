@@ -78,6 +78,97 @@ DTOVERLAY=(
 #===============================================================================
 # RetroPie Configuration
 
+# packages to be installed from binary
+PACKAGES_BINARY=(
+  emulationstation
+  runcommand
+  splashscreen
+)
+
+# packages to be installed from source
+PACKAGES_SOURCE=(
+  retroarch
+  lr-genesis-plus-gx
+  lr-mgba
+  lr-mupen64plus
+  lr-nestopia
+  lr-pcsx-rearmed
+  lr-snes9x
+)
+
+# default emulators for systems
+EMULATOR=(
+  [fds]=lr-nestopia
+  [gamegear]=lr-genesis-plus-gx
+  [gb]=lr-mgba
+  [gba]=lr-mgba
+  [gbc]=lr-mgba
+  [mastersystem]=lr-genesis-plus-gx
+  [megadrive]=lr-genesis-plus-gx
+  [n64]=lr-mupen64plus
+  [nes]=lr-nestopia
+  [psx]=lr-pcsx-rearmed
+  [segacd]=lr-genesis-plus-gx
+  [sg-1000]=lr-genesis-plus-gx
+  [snes]=lr-snes9x
+)
+
+# default video modes for emulators
+VIDEO_MODE=(
+  [lr-genesis-plus-gx]=CEA-4
+  [lr-mgba]=CEA-4
+  [lr-mupen64plus]=CEA-4
+  [lr-nestopia]=CEA-4
+  [lr-pcsx-rearmed]=CEA-4
+  [lr-snes9x]=CEA-4
+)
+
+# shader preset types for libretro core names
+SHADER_PRESET_TYPE=(
+  ["mGBA"]=LCD
+  ["Genesis Plus GX"]=CRT
+  ["Nestopia"]=CRT
+  ["Mupen64Plus GLES2"]=CRT
+  ["PCSX-ReARMed"]=CRT
+  ["Snes9x"]=CRT
+)
+
+# shader presets for shader preset types
+SHADER_PRESET=(
+  [CRT]="$(cat <<EOF
+shaders = "1"
+shader0 = "$SHADERS_DIR/zfast_crt_standard.glsl"
+filter_linear0 = "true"
+wrap_mode0 = "clamp_to_border"
+mipmap_input0 = "false"
+alias0 = ""
+float_framebuffer0 = "false"
+srgb_framebuffer0 = "false"
+parameters = "BLURSCALEX;LOWLUMSCAN;HILUMSCAN;BRIGHTBOOST;MASK_DARK;MASK_FADE"
+BLURSCALEX = "0.300000"
+LOWLUMSCAN = "6.000000"
+HILUMSCAN = "8.000000"
+BRIGHTBOOST = "1.250000"
+MASK_DARK = "0.250000"
+MASK_FADE = "0.800000"
+EOF
+)"
+  [LCD]="$(cat <<EOF
+shaders = "1"
+shader0 = "$SHADERS_DIR/zfast_lcd_standard.glsl"
+filter_linear0 = "true"
+wrap_mode0 = "clamp_to_border"
+mipmap_input0 = "false"
+alias0 = ""
+float_framebuffer0 = "false"
+srgb_framebuffer0 = "false"
+parameters = "BORDERMULT;GBAGAMMA"
+BORDERMULT = "3.000000"
+GBAGAMMA = "1.000000"
+EOF
+)"
+)
+
 # controller mappings for retroarch joypads
 JOYPAD_MAPPING=(
   [Sony PLAYSTATION(R)3 Controller]="$(cat <<"EOF"
