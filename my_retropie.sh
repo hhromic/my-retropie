@@ -102,7 +102,7 @@ ES_INPUT=
 # Helpers
 
 function print() {
-  local -r _format="$1"
+  local -r _format=$1
   shift
   # shellcheck disable=SC2059
   printf "$_format" "$@"
@@ -181,14 +181,14 @@ function show_message() {
 
 function show_variables() {
   function _show_var() {
-    local -r _label="$1"
+    local -r _label=$1
     shift
     ansi_code reset fg_magenta && print "%s" "$_label" &&
     ansi_code bold && print " = " &&
     ansi_code reset && println "%s " "$@"
   }
   function _show_arr() {
-    local -r _label="$1"
+    local -r _label=$1
     local _keys
     local _key
     local _value
@@ -241,7 +241,7 @@ function show_variables() {
 # Actions helpers
 
 function enable_apt_suite() {
-  local -r _suite="$1"
+  local -r _suite=$1
   sudo bash <<EOF
 grep "^deb" /etc/apt/sources.list | awk "{\\\$3=\"$_suite\"}1" \
   > /etc/apt/sources.list.d/"$_suite".list || exit
@@ -249,10 +249,10 @@ EOF
 }
 
 function set_apt_preference() {
-  local -r _filename="$1"
-  local -r _package="$2"
-  local -r _suite="$3"
-  local -r _priority="$4"
+  local -r _filename=$1
+  local -r _package=$2
+  local -r _suite=$3
+  local -r _priority=$4
   sudo bash <<EOF
 cat > /etc/apt/preferences.d/"$_filename" <<EOF_2
 Package: $_package
@@ -277,9 +277,9 @@ EOF
 }
 
 function set_hostname() { # adapted from raspi-config
-  local -r _hostname="$1"
+  local -r _hostname=$1
   local _current
-  _current="$(tr -d $'\t'$'\n'$'\r' < /etc/hostname)"
+  _current=$(tr -d $'\t'$'\n'$'\r' < /etc/hostname)
   sudo bash <<EOF
 printf "%s"\$'\\n' "$_hostname" > /etc/hostname || exit
 sed -e "s/127.0.1.1.*$_current/127.0.1.1"\$'\\t'"$_hostname/g" \
@@ -288,7 +288,7 @@ EOF
 }
 
 function set_timezone() { # adapted from raspi-config
-  local -r _timezone="$1"
+  local -r _timezone=$1
   sudo bash <<EOF
 rm -f /etc/localtime || exit
 printf "%s"\$'\\n' "$_timezone" > /etc/timezone || exit
@@ -309,7 +309,7 @@ function run_retropie_packages() {
 }
 
 function install_package_from_binary() {
-  local -r _package="$1"
+  local -r _package=$1
   local _action
   for _action in depends install_bin configure; do
     run_retropie_packages "$_package" "$_action" || return
@@ -317,7 +317,7 @@ function install_package_from_binary() {
 }
 
 function install_package_from_source() {
-  local -r _package="$1"
+  local -r _package=$1
   run_retropie_packages "$_package" clean || return
   run_retropie_packages "$_package" || return
 }
@@ -332,11 +332,11 @@ function get_bluetooth_adapters() {
 }
 
 function write_bluetooth_info() {
-  local -r _adapter="$1"
-  local -r _device="$2"
-  local -r _data="$3"
+  local -r _adapter=$1
+  local -r _device=$2
+  local -r _data=$3
   local _filename
-  _filename="$(print "$BLUEZ_INFO_FILE" "$_adapter" "$_device")"
+  _filename=$(print "$BLUEZ_INFO_FILE" "$_adapter" "$_device")
   sudo bash <<EOF
 umask 0077
 mkdir -p "${_filename%/*}" || exit
@@ -345,11 +345,11 @@ EOF
 }
 
 function write_bluetooth_cache() {
-  local -r _adapter="$1"
-  local -r _device="$2"
-  local -r _data="$3"
+  local -r _adapter=$1
+  local -r _device=$2
+  local -r _data=$3
   local _filename
-  _filename="$(print "$BLUEZ_CACHE_FILE" "$_adapter" "$_device")"
+  _filename=$(print "$BLUEZ_CACHE_FILE" "$_adapter" "$_device")
   sudo bash <<EOF
 umask 0077
 mkdir -p "${_filename%/*}" || exit
@@ -358,36 +358,36 @@ EOF
 }
 
 function set_runcommand_option() {
-  local -r _option="$1"
-  local -r _value="$2"
+  local -r _option=$1
+  local -r _value=$2
   sed -e "s/^.*$_option.*$/$_option = \"$_value\"/g" \
     -i "$RUNCOMMAND_CONFIG_FILE" || return
 }
 
 function set_retroarch_option() {
-  local -r _option="$1"
-  local -r _value="$2"
+  local -r _option=$1
+  local -r _value=$2
   sed -e "s/^.*$_option.*$/$_option = \"$_value\"/g" \
     -i "$RETROARCH_CONFIG_FILE" || return
 }
 
 function write_shader_preset() {
-  local -r _core_name="$1"
-  local -r _preset="$2"
+  local -r _core_name=$1
+  local -r _preset=$2
   local -r _filename="$SHADERS_PRESETS_DIR"/"$_core_name"/"$_core_name".glslp
   mkdir -p "${_filename%/*}" || return
   println "$_preset" > "$_filename" || return
 }
 
 function write_joypad_mapping() {
-  local -r _joypad="$1"
-  local -r _mapping="$2"
+  local -r _joypad=$1
+  local -r _mapping=$2
   println "$_mapping" > "$AUTOCONFIG_DIR"/"$_joypad".cfg || return
 }
 
 function set_rpiconfig_option() {
-  local -r _option="$1"
-  local -r _value="$2"
+  local -r _option=$1
+  local -r _value=$2
   sudo bash <<EOF
 if grep -q "^$_option=" /boot/config.txt 2>/dev/null; then
   sed -e "/^$_option=/ c\\$_option=$_value" -i /boot/config.txt || exit
@@ -398,8 +398,8 @@ EOF
 }
 
 function set_rpiconfig_dtoverlay() {
-  local -r _dtoverlay="$1"
-  local _params="$2"
+  local -r _dtoverlay=$1
+  local _params=$2
   [[ -n $_params ]] && _params=":$_params"
   sudo bash <<EOF
 if grep -E -q '^dtoverlay=$_dtoverlay([,:]|\$)' /boot/config.txt 2>/dev/null; then
@@ -426,8 +426,8 @@ EOF
 function configure_kcmdline() {
   sudo bash <<"EOF"
 function _set_option() {
-  local -r _option="$1"
-  local _value="$2"
+  local -r _option=$1
+  local _value=$2
   local -i _found=0
   local -i _idx=0
   [[ -n $_value ]] && _value="=$_value"
@@ -598,7 +598,7 @@ function action_configure_emulators() {
   # configure default emulator for each system
   for _system in "${!EMULATOR[@]}"; do
     show_message "Configuring '%s' system ..." "$_system"
-    _filename="$(print "$EMULATORS_FILE" "$_system")"
+    _filename=$(print "$EMULATORS_FILE" "$_system")
     if [[ -f $_filename ]]; then
       sed -E "/^default ?=/d" -i "$_filename" || return
     fi
@@ -634,7 +634,7 @@ function action_configure_shaders() {
   # configure video shaders
   for _core_name in "${!SHADER_PRESET_TYPE[@]}"; do
     show_message "Configuring libretro core name '%s' ..." "$_core_name"
-    _shader_type="${SHADER_PRESET_TYPE[$_core_name]}"
+    _shader_type=${SHADER_PRESET_TYPE[$_core_name]}
     write_shader_preset "$_core_name" \
       "${SHADER_PRESET[$_shader_type]}" || return
   done
