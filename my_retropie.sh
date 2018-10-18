@@ -400,7 +400,7 @@ EOF
 function set_rpiconfig_dtoverlay() {
   local -r _dtoverlay="$1"
   local _params="$2"
-  [[ -n "$_params" ]] && _params=":$_params"
+  [[ -n $_params ]] && _params=":$_params"
   sudo bash <<EOF
 if grep -E -q '^dtoverlay=$_dtoverlay([,:]|\$)' /boot/config.txt 2>/dev/null; then
   sed -E "/^dtoverlay=$_dtoverlay([,:]|\$)/ c\\dtoverlay=$_dtoverlay$_params" -i /boot/config.txt || exit
@@ -430,9 +430,9 @@ function _set_option() {
   local _value="$2"
   local -i _found=0
   local -i _idx=0
-  [[ -n "$_value" ]] && _value="=$_value"
+  [[ -n $_value ]] && _value="=$_value"
   while [[ $_idx -lt ${#CMDLINE[@]} ]]; do
-    if [[ "${CMDLINE[$_idx]}" =~ ^$_option(=|$) ]]; then
+    if [[ ${CMDLINE[$_idx]} =~ ^$_option(=|$) ]]; then
       CMDLINE[$_idx]="$_option$_value"
       _found=1
     fi
@@ -599,7 +599,7 @@ function action_configure_emulators() {
   for _system in "${!EMULATOR[@]}"; do
     show_message "Configuring '%s' system ..." "$_system"
     _filename="$(print "$EMULATORS_FILE" "$_system")"
-    if [[ -f "$_filename" ]]; then
+    if [[ -f $_filename ]]; then
       sed -E "/^default ?=/d" -i "$_filename" || return
     fi
     println "default = \"%s\"" "${EMULATOR[$_system]}" \
@@ -614,7 +614,7 @@ function action_configure_videomodes() {
   # configure video mode for each emulator
   for _emulator in "${!VIDEO_MODE[@]}"; do
     show_message "Configuring '%s' emulator ..." "$_emulator"
-    if [[ -f "$VIDEO_MODES_FILE" ]]; then
+    if [[ -f $VIDEO_MODES_FILE ]]; then
       sed -E "/^$_emulator ?=/d" -i "$VIDEO_MODES_FILE" || return
     fi
     println "%s = \"%s\"" "$_emulator" "${VIDEO_MODE[$_emulator]}" \
@@ -665,7 +665,7 @@ function action_configure_es() {
 
   # configure controller input
   show_message "Configuring controller input ..."
-  [[ -n "$ES_INPUT" ]] && cat > "$ES_INPUT_FILE" <<< "$ES_INPUT" || return
+  [[ -n $ES_INPUT ]] && cat > "$ES_INPUT_FILE" <<< "$ES_INPUT" || return
 }
 
 function action_configure_quietmode() {
@@ -710,14 +710,14 @@ function action_clean() {
 }
 
 function action_post_upgrade_hook() {
-  if [[ "$(type -t my_retropie_upgrade_hook)" == "function" ]]; then
+  if [[ $(type -t my_retropie_upgrade_hook) == function ]]; then
     show_banner "Post-Upgrade Hook"
     my_retropie_upgrade_hook || return
   fi
 }
 
 function action_post_setup_hook() {
-  if [[ "$(type -t my_retropie_setup_hook)" == "function" ]]; then
+  if [[ $(type -t my_retropie_setup_hook) == function ]]; then
     show_banner "Post-Setup Hook"
     my_retropie_setup_hook || return
   fi
