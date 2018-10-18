@@ -96,7 +96,7 @@ declare -A JOYPAD_MAPPING
 declare -A JOYPAD_INDEX
 
 # emulationstation input config
-ES_INPUT=
+declare ES_INPUT
 
 #===============================================================================
 # Helpers
