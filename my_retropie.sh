@@ -121,7 +121,7 @@ function ansi_code() {
   local -i _code
   for _token in "$@"; do
     _code=-1
-    case "$_token" in
+    case $_token in
       reset)       _code=0 ;;
       bold)        _code=1 ;;
       underline)   _code=4 ;;
@@ -157,7 +157,7 @@ function confirm() {
   ansi_code fg_red && print "[N]" &&
   ansi_code reset && print ") "
   read -r _ans
-  case "$_ans" in
+  case $_ans in
     y*|Y*) return 0 ;;
     *) return 1 ;;
   esac
@@ -729,7 +729,7 @@ function action_post_setup_hook() {
 function my_retropie() {
   show_banner "Welcome to MyRetroPie !"
   show_variables
-  case "$1" in
+  case $1 in
     upgrade)
       show_message "Action: UPGRADE INSTALLATION"
       confirm "Continue?" || return
