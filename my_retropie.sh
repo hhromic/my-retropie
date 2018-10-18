@@ -710,14 +710,14 @@ function action_clean() {
 }
 
 function action_post_upgrade_hook() {
-  if [[ "$(type -t my_retropie_upgrade_hook)" = "function" ]]; then
+  if [[ "$(type -t my_retropie_upgrade_hook)" == "function" ]]; then
     show_banner "Post-Upgrade Hook"
     my_retropie_upgrade_hook || return
   fi
 }
 
 function action_post_setup_hook() {
-  if [[ "$(type -t my_retropie_setup_hook)" = "function" ]]; then
+  if [[ "$(type -t my_retropie_setup_hook)" == "function" ]]; then
     show_banner "Post-Setup Hook"
     my_retropie_setup_hook || return
   fi
