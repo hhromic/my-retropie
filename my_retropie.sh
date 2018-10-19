@@ -665,7 +665,7 @@ function action_configure_es() {
 
   # configure controller input
   show_message "Configuring controller input ..."
-  [[ -n $ES_INPUT ]] && cat > "$ES_INPUT_FILE" <<< "$ES_INPUT" || return
+  [[ -n $ES_INPUT ]] && cat > "$ES_INPUT_FILE" <<<"$ES_INPUT" || return
 }
 
 function action_configure_quietmode() {
