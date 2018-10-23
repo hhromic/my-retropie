@@ -376,4 +376,4 @@ function my_retropie_setup_hook() {
 #===============================================================================
 # Run MyRetropie
 
-my_retropie "$@" || exit
+my_retropie "$@"
