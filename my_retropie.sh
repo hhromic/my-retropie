@@ -89,8 +89,8 @@ declare -A SHADER_PRESET_TYPE
 # shader presets for shader preset types
 declare -A SHADER_PRESET
 
-# controller mappings for retroarch joypads
-declare -A JOYPAD_MAPPING
+# autoconfigs for retroarch joypads
+declare -A JOYPAD_AUTOCONFIG
 
 # joypad indices for retroarch players
 declare -A JOYPAD_INDEX
@@ -232,7 +232,7 @@ function show_variables() {
   _show_arr "VIDEO_MODE            " "VIDEO_MODE" &&
   _show_arr "SHADER_PRESET_TYPE    " "SHADER_PRESET_TYPE" &&
   _show_arr "SHADER_PRESET         " "SHADER_PRESET" &&
-  _show_arr "JOYPAD_MAPPING        " "JOYPAD_MAPPING" &&
+  _show_arr "JOYPAD_AUTOCONFIG     " "JOYPAD_AUTOCONFIG" &&
   _show_arr "JOYPAD_INDEX          " "JOYPAD_INDEX" &&
   _show_var "ES_INPUT              " $'\n'"$ES_INPUT"
 }
@@ -379,10 +379,10 @@ function write_shader_preset() {
   println "$_preset" > "$_filename" || return
 }
 
-function write_joypad_mapping() {
+function write_joypad_autoconfig() {
   local -r _joypad=$1
-  local -r _mapping=$2
-  println "$_mapping" > "$AUTOCONFIG_DIR"/"$_joypad".cfg || return
+  local -r _autoconfig=$2
+  println "$_autoconfig" > "$AUTOCONFIG_DIR"/"$_joypad".cfg || return
 }
 
 function set_rpiconfig_option() {
@@ -645,11 +645,11 @@ function action_configure_joypads() {
   local _player
   show_banner "Retroarch Joypads Configuration"
 
-  # configure joypads mappings
-  for _joypad in "${!JOYPAD_MAPPING[@]}"; do
-    show_message "Configuring mapping for joypad '%s' ..." "$_joypad"
-    write_joypad_mapping "$_joypad" \
-      "${JOYPAD_MAPPING[$_joypad]}" || return
+  # configure joypad autoconfigs
+  for _joypad in "${!JOYPAD_AUTOCONFIG[@]}"; do
+    show_message "Configuring autoconfig for joypad '%s' ..." "$_joypad"
+    write_joypad_autoconfig "$_joypad" \
+      "${JOYPAD_AUTOCONFIG[$_joypad]}" || return
   done
 
   # configure joypad indices
