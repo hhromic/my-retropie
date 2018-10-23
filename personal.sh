@@ -169,8 +169,8 @@ EOF
 )"
 )
 
-# controller mappings for retroarch joypads
-JOYPAD_MAPPING=(
+# autoconfigs for retroarch joypads
+JOYPAD_AUTOCONFIG=(
   [Sony PLAYSTATION(R)3 Controller]="$(cat <<"EOF"
 input_device = "Sony PLAYSTATION(R)3 Controller"
 input_driver = "udev"
