@@ -297,6 +297,46 @@ EOF
 )"
 )
 
+# joypad remaps for systems/libretro core names
+JOYPAD_REMAP=(
+  [mastersystem/Genesis Plus GX]="$(cat <<"EOF"
+input_player1_btn_b = "1"
+input_player1_btn_y = "0"
+input_player2_btn_b = "1"
+input_player2_btn_y = "0"
+input_player3_btn_b = "1"
+input_player3_btn_y = "0"
+input_player4_btn_b = "1"
+input_player4_btn_y = "0"
+input_player5_btn_b = "1"
+input_player5_btn_y = "0"
+EOF
+)"
+  [nes/Nestopia]="$(cat <<"EOF"
+input_player1_btn_a = "9"
+input_player1_btn_b = "8"
+input_player1_btn_x = "1"
+input_player1_btn_y = "0"
+input_player2_btn_a = "9"
+input_player2_btn_b = "8"
+input_player2_btn_x = "1"
+input_player2_btn_y = "0"
+input_player3_btn_a = "9"
+input_player3_btn_b = "8"
+input_player3_btn_x = "1"
+input_player3_btn_y = "0"
+input_player4_btn_a = "9"
+input_player4_btn_b = "8"
+input_player4_btn_x = "1"
+input_player4_btn_y = "0"
+input_player5_btn_a = "9"
+input_player5_btn_b = "8"
+input_player5_btn_x = "1"
+input_player5_btn_y = "0"
+EOF
+)"
+)
+
 # emulationstation input config
 read -r -d "" ES_INPUT <<"EOF"
 <?xml version="1.0"?>

@@ -20,11 +20,14 @@ RETROPIE_BASE_DIR=$HOME/RetroPie-Setup
 # config files base directory
 CONFIGS_BASE_DIR=/opt/retropie/configs
 
+# system base directory (args: system)
+SYSTEM_BASE_DIR=$CONFIGS_BASE_DIR/%s
+
 # runcommand config file
 RUNCOMMAND_CONFIG_FILE=$CONFIGS_BASE_DIR/all/runcommand.cfg
 
 # emulators config file (args: system)
-EMULATORS_FILE=$CONFIGS_BASE_DIR/%s/emulators.cfg
+EMULATORS_FILE=$SYSTEM_BASE_DIR/emulators.cfg
 
 # video modes config file
 VIDEO_MODES_FILE=$CONFIGS_BASE_DIR/all/videomodes.cfg
@@ -94,6 +97,9 @@ declare -A JOYPAD_AUTOCONFIG
 
 # joypad indices for retroarch players
 declare -A JOYPAD_INDEX
+
+# joypad remaps for systems/libretro core names
+declare -A JOYPAD_REMAP
 
 # emulationstation input config
 declare ES_INPUT
@@ -208,6 +214,7 @@ function show_variables() {
   _show_var "BLUEZ_CACHE_FILE      " "$BLUEZ_CACHE_FILE" &&
   _show_var "RETROPIE_BASE_DIR     " "$RETROPIE_BASE_DIR" &&
   _show_var "CONFIGS_BASE_DIR      " "$CONFIGS_BASE_DIR" &&
+  _show_var "SYSTEM_BASE_DIR       " "$SYSTEM_BASE_DIR" &&
   _show_var "RUNCOMMAND_CONFIG_FILE" "$RUNCOMMAND_CONFIG_FILE" &&
   _show_var "VIDEO_MODES_FILE      " "$VIDEO_MODES_FILE" &&
   _show_var "RETROARCH_CONFIG_FILE " "$RETROARCH_CONFIG_FILE" &&
@@ -234,6 +241,7 @@ function show_variables() {
   _show_arr "SHADER_PRESET         " "SHADER_PRESET" &&
   _show_arr "JOYPAD_AUTOCONFIG     " "JOYPAD_AUTOCONFIG" &&
   _show_arr "JOYPAD_INDEX          " "JOYPAD_INDEX" &&
+  _show_arr "JOYPAD_REMAP          " "JOYPAD_REMAP" &&
   _show_var "ES_INPUT              " $'\n'"$ES_INPUT"
 }
 
@@ -383,6 +391,17 @@ function write_joypad_autoconfig() {
   local -r _joypad=$1
   local -r _autoconfig=$2
   println "$_autoconfig" > "$AUTOCONFIG_DIR"/"$_joypad".cfg || return
+}
+
+function write_joypad_remap() {
+  local -r _system=$1
+  local -r _core_name=$2
+  local -r _remap=$3
+  local _filename
+  _filename=$(print "$SYSTEM_BASE_DIR" "$_system")
+  _filename+=/"$_core_name"/"$_core_name".rmp
+  mkdir -p "${_filename%/*}" || return
+  println "$_remap" > "$_filename" || return
 }
 
 function set_rpiconfig_option() {
@@ -643,6 +662,7 @@ function action_configure_shaders() {
 function action_configure_joypads() {
   local _joypad
   local _player
+  local _system_core_name
   show_banner "Retroarch Joypads Configuration"
 
   # configure joypad autoconfigs
@@ -657,6 +677,14 @@ function action_configure_joypads() {
     show_message "Configuring joypad index for player '%s' ..." "$_player"
     set_retroarch_option "input_player${_player}_joypad_index" \
       "${JOYPAD_INDEX[$_player]}" || return
+  done
+
+  # configure joypad remaps
+  for _system_core_name in "${!JOYPAD_REMAP[@]}"; do
+    show_message "Configuring joypad remap for system/core name '%s' ..." \
+      "$_system_core_name"
+    write_joypad_remap "${_system_core_name%/*}" "${_system_core_name#*/}" \
+      "${JOYPAD_REMAP[$_system_core_name]}" || return
   done
 }
 
