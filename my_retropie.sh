@@ -652,7 +652,7 @@ function action_configure_shaders() {
 
   # configure video shaders
   for _core_name in "${!SHADER_PRESET_TYPE[@]}"; do
-    show_message "Configuring libretro core name '%s' ..." "$_core_name"
+    show_message "Configuring core name '%s' ..." "$_core_name"
     _shader_type=${SHADER_PRESET_TYPE[$_core_name]}
     write_shader_preset "$_core_name" \
       "${SHADER_PRESET[$_shader_type]}" || return
