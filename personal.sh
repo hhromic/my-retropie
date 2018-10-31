@@ -125,12 +125,12 @@ VIDEO_MODE=(
 
 # shader preset types for libretro core names
 SHADER_PRESET_TYPE=(
-  ["mGBA"]=LCD
-  ["Genesis Plus GX"]=CRT
-  ["Nestopia"]=CRT
-  ["Mupen64Plus GLES2"]=CRT
-  ["PCSX-ReARMed"]=CRT
-  ["Snes9x"]=CRT
+  [mGBA]=LCD
+  [Genesis Plus GX]=CRT
+  [Nestopia]=CRT
+  [Mupen64Plus GLES2]=CRT
+  [PCSX-ReARMed]=CRT
+  [Snes9x]=CRT
 )
 
 # shader presets for shader preset types
