@@ -8,10 +8,10 @@
 # bluez storage directory
 BLUEZ_STORAGE_DIR=/var/lib/bluetooth
 
-# bluez device info file
+# bluez device info file (args: adapter, device)
 BLUEZ_INFO_FILE=$BLUEZ_STORAGE_DIR/%s/%s/info
 
-# bluez device cache file
+# bluez device cache file (args: adapter, device)
 BLUEZ_CACHE_FILE=$BLUEZ_STORAGE_DIR/%s/cache/%s
 
 # RetroPie base directory
@@ -23,7 +23,7 @@ CONFIGS_BASE_DIR=/opt/retropie/configs
 # runcommand config file
 RUNCOMMAND_CONFIG_FILE=$CONFIGS_BASE_DIR/all/runcommand.cfg
 
-# emulators config file
+# emulators config file (args: system)
 EMULATORS_FILE=$CONFIGS_BASE_DIR/%s/emulators.cfg
 
 # video modes config file
@@ -41,7 +41,7 @@ SHADERS_DIR=$SHADERS_BASE_DIR/shaders
 # shaders presets directory
 SHADERS_PRESETS_DIR=$SHADERS_BASE_DIR/presets
 
-# retroarch autoconfig directory
+# retroarch joypad autoconfig directory
 AUTOCONFIG_DIR=$CONFIGS_BASE_DIR/all/retroarch/autoconfig
 
 # emulationstation input config file
