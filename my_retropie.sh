@@ -271,17 +271,13 @@ EOF
 }
 
 function update_apt_packages() {
-  sudo bash <<"EOF"
-apt-get -y update
-apt-get -y dist-upgrade
-EOF
+  sudo apt-get -y update || return
+  sudo apt-get -y dist-upgrade || return
 }
 
 function install_apt_required_packages() {
-  sudo bash <<"EOF"
-apt-get -y install git ca-certificates \
-  bluetooth bluez bluez-firmware libbluetooth3
-EOF
+  sudo apt-get -y install git ca-certificates \
+    bluetooth bluez bluez-firmware libbluetooth3
 }
 
 function set_hostname() { # adapted from raspi-config
@@ -472,9 +468,7 @@ EOF
 }
 
 function clean_apt() {
-  sudo bash <<"EOF"
-apt-get -y clean
-EOF
+  sudo apt-get -y clean
 }
 
 #===============================================================================
