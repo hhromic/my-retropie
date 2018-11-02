@@ -249,7 +249,7 @@ function show_variables() {
 # Actions helpers
 
 function have_bluetooth() {
-  [[ ${#BLUETOOTH_DEVICE_INFO[@]} -gt 0 ]]
+  [[ ${#BLUETOOTH_DEVICE_INFO[@]} -gt 0 ]] || [[ -n $HAVE_BLUETOOTH ]]
 }
 
 function enable_apt_suite() {
