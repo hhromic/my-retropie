@@ -248,6 +248,10 @@ function show_variables() {
 #===============================================================================
 # Actions helpers
 
+function have_bluetooth() {
+  [[ ${#BLUETOOTH_DEVICE_INFO[@]} -gt 0 ]]
+}
+
 function enable_apt_suite() {
   local -r _suite=$1
   sudo bash <<EOF
@@ -275,9 +279,8 @@ function update_apt_packages() {
   sudo apt-get -y dist-upgrade || return
 }
 
-function install_apt_required_packages() {
-  sudo apt-get -y install git ca-certificates \
-    bluetooth bluez bluez-firmware libbluetooth3
+function install_apt_packages() {
+  sudo apt-get -y install "$@"
 }
 
 function set_hostname() { # adapted from raspi-config
@@ -478,21 +481,23 @@ function action_apt_setup() {
   local _bluez_packages
   show_banner "APT Setup"
 
-  # enable testing suite
-  show_message "Enabling 'testing' suite ..."
-  enable_apt_suite "testing" || return
+  if have_bluetooth; then
+    # enable testing suite
+    show_message "Enabling 'testing' suite ..."
+    enable_apt_suite "testing" || return
 
-  # configure testing suite preference
-  show_message "Configuring 'testing' suite preference ..."
-  set_apt_preference "testing" "*" "testing" "-10"
+    # configure testing suite preference
+    show_message "Configuring 'testing' suite preference ..."
+    set_apt_preference "testing" "*" "testing" "-10"
 
-  # configure bluez packages preference
-  show_message "Configuring bluez packages preference ..."
-  _bluez_packages=(
-    bluetooth bluez bluez-cups bluez-hcidump bluez-obexd bluez-test-scripts
-    bluez-test-tools libbluetooth-dev libbluetooth3 bluez-firmware
-  )
-  set_apt_preference "bluez" "${_bluez_packages[*]}" "testing" "900"
+    # configure bluez packages preference
+    show_message "Configuring bluez packages preference ..."
+    _bluez_packages=(
+      bluetooth bluez bluez-cups bluez-hcidump bluez-obexd bluez-test-scripts
+      bluez-test-tools libbluetooth-dev libbluetooth3 bluez-firmware
+    )
+    set_apt_preference "bluez" "${_bluez_packages[*]}" "testing" "900"
+  fi
 }
 
 function action_raspbian_update() {
@@ -508,7 +513,7 @@ function action_raspbian_setup() {
 
   # install required apt packages
   show_message "Installing required APT packages ..."
-  install_apt_required_packages || return
+  install_apt_packages git ca-certificates || return
 
   # configure device hostname
   show_message "Configuring device hostname to '%s' ..." "$DEVICE_HOSTNAME"
@@ -559,10 +564,6 @@ function action_install_packages() {
 function action_configure_retropie() {
   show_banner "RetroPie Configuration"
 
-  # install bluetooth dependencies
-  show_message "Installing bluetooth dependencies ..."
-  run_retropie_packages "bluetooth" "depends" || return
-
   # enable required kernel modules
   show_message "Enabling required kernel modules ..."
   run_retropie_packages "raspbiantools" "enable_modules" || return
@@ -581,6 +582,15 @@ function action_configure_bluetooth() {
   local _adapter
   local _device
   show_banner "Bluetooth Configuration"
+  ! have_bluetooth && return
+
+  # install required apt packages
+  show_message "Installing required APT packages ..."
+  install_apt_packages bluetooth bluez bluez-firmware libbluetooth3 || return
+
+  # install bluetooth dependencies
+  show_message "Installing bluetooth dependencies ..."
+  run_retropie_packages "bluetooth" "depends" || return
 
   # stop bluetooth service
   show_message "Stopping bluetooth service ..."
