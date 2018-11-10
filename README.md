@@ -20,5 +20,5 @@ All the instructions below are meant to be run as the normal user `pi`.
 
 6. Start the personal installation script:
 
-       bash <(wget https://git.io/fAeSi -q -O -)
+       bash <(wget https://git.io/fAeSi -qO-)
 

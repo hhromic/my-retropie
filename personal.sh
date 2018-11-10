@@ -3,7 +3,7 @@
 # script by github.com/hhromic
 
 # source MyRetropie script
-source <(wget https://git.io/fNFAV -q -O -)
+source <(wget https://git.io/fNFAV -qO-)
 
 #===============================================================================
 # Raspbian Configuration
