@@ -10,6 +10,12 @@ source <(wget https://git.io/fNFAV -qO-)
 
 DEVICE_TIMEZONE=Europe/Dublin
 
+# apt packages to be installed
+APT_PACKAGES=(
+  avahi-daemon
+  libnss-mdns
+)
+
 # info data for bluetooth devices
 BLUETOOTH_DEVICE_INFO=(
   [00:26:43:D4:2E:B4]="$(cat <<"EOF"
