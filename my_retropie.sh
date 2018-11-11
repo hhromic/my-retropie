@@ -249,11 +249,35 @@ function show_variables() {
   _show_var "ES_INPUT              " $'\n'"$ES_INPUT"
 }
 
+function have_bluetooth() {
+  [[ ${#BLUETOOTH_DEVICE_INFO[@]} -gt 0 ]] || [[ -n $HAVE_BLUETOOTH ]]
+}
+
 #===============================================================================
 # Actions helpers
 
-function have_bluetooth() {
-  [[ ${#BLUETOOTH_DEVICE_INFO[@]} -gt 0 ]] || [[ -n $HAVE_BLUETOOTH ]]
+function update_apt() {
+  sudo apt-get -y update
+}
+
+function update_apt_packages() {
+  sudo apt-get -y dist-upgrade
+}
+
+function install_apt_packages() {
+  sudo apt-get -y install "$@"
+}
+
+function clean_apt() {
+  sudo apt-get -y clean
+}
+
+function run_retropie_packages() {
+  sudo "$RETROPIE_BASE_DIR"/retropie_packages.sh "$@"
+}
+
+function run_systemctl() {
+  sudo systemctl "$@"
 }
 
 function enable_apt_suite() {
@@ -276,18 +300,6 @@ Pin: release a=$_suite
 Pin-Priority: $_priority
 EOF_2
 EOF
-}
-
-function update_apt() {
-  sudo apt-get -y update
-}
-
-function update_apt_packages() {
-  sudo apt-get -y dist-upgrade
-}
-
-function install_apt_packages() {
-  sudo apt-get -y install "$@"
 }
 
 function set_hostname() { # adapted from raspi-config
@@ -318,10 +330,6 @@ fi
 EOF
 }
 
-function run_retropie_packages() {
-  sudo "$RETROPIE_BASE_DIR"/retropie_packages.sh "$@"
-}
-
 function install_package_from_binary() {
   local -r _package=$1
   local _action
@@ -334,10 +342,6 @@ function install_package_from_source() {
   local -r _package=$1
   run_retropie_packages "$_package" clean || return
   run_retropie_packages "$_package" || return
-}
-
-function run_systemctl() {
-  sudo systemctl "$@"
 }
 
 function get_bluetooth_adapters() {
@@ -475,10 +479,6 @@ _set_option "plymouth.enable" "0"
 N_CMDLINE=$(sort -u <(for l in "${CMDLINE[@]}"; do printf "%s"$'\n' "$l"; done))
 printf "%s"$'\n' "${N_CMDLINE//$'\n'/ }" > /boot/cmdline.txt
 EOF
-}
-
-function clean_apt() {
-  sudo apt-get -y clean
 }
 
 #===============================================================================
