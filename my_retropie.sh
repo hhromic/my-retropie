@@ -59,6 +59,9 @@ DEVICE_HOSTNAME=retropie
 # device timezone
 DEVICE_TIMEZONE=Etc/UTC
 
+# apt packages to be installed
+declare -a APT_PACKAGES
+
 # info data for bluetooth devices
 declare -A BLUETOOTH_DEVICE_INFO
 
@@ -227,6 +230,7 @@ function show_variables() {
   show_message "Raspbian configuration" && new_line &&
   _show_var "DEVICE_HOSTNAME       " "$DEVICE_HOSTNAME" &&
   _show_var "DEVICE_TIMEZONE       " "$DEVICE_TIMEZONE" &&
+  _show_arr "APT_PACKAGES          " "APT_PACKAGES" &&
   _show_arr "BLUETOOTH_DEVICE_INFO " "BLUETOOTH_DEVICE_INFO" &&
   _show_arr "BLUETOOTH_DEVICE_CACHE" "BLUETOOTH_DEVICE_CACHE" &&
   _show_arr "DTOVERLAY             " "DTOVERLAY" &&
@@ -521,6 +525,10 @@ function action_raspbian_setup() {
   # install required apt packages
   show_message "Installing required APT packages ..."
   install_apt_packages git ca-certificates || return
+
+  # install apt packages
+  show_message "Install APT packages ..."
+  install_apt_packages "${APT_PACKAGES[@]}" || return
 
   # configure device hostname
   show_message "Configuring device hostname to '%s' ..." "$DEVICE_HOSTNAME"
