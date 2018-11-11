@@ -274,9 +274,12 @@ EOF_2
 EOF
 }
 
+function update_apt() {
+  sudo apt-get -y update
+}
+
 function update_apt_packages() {
-  sudo apt-get -y update || return
-  sudo apt-get -y dist-upgrade || return
+  sudo apt-get -y dist-upgrade
 }
 
 function install_apt_packages() {
@@ -502,6 +505,10 @@ function action_apt_setup() {
 
 function action_raspbian_update() {
   show_banner "Raspbian Update"
+
+  # update apt
+  show_message "Updating APT ..."
+  update_apt || return
 
   # update apt packages
   show_message "Updating APT packages ..."
