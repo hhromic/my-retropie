@@ -579,6 +579,13 @@ function action_install_packages() {
 function action_configure_retropie() {
   show_banner "RetroPie Configuration"
 
+  # configure GPU memory split and overscan scale
+  show_message "Configuring GPU memory split and overscan scale ..."
+  set_rpiconfig_option "gpu_mem_256" "128" || return
+  set_rpiconfig_option "gpu_mem_512" "256" || return
+  set_rpiconfig_option "gpu_mem_1024" "256" || return
+  set_rpiconfig_option "overscan_scale" "1" || return
+
   # enable required kernel modules
   show_message "Enabling required kernel modules ..."
   run_retropie_packages "raspbiantools" "enable_modules" || return
