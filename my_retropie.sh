@@ -378,6 +378,7 @@ EOF
 function set_runcommand_option() {
   local -r _option=$1
   local -r _value=$2
+  [[ ! -f $RUNCOMMAND_CONFIG_FILE ]] && return
   sed -e "s/^.*$_option.*$/$_option = \"$_value\"/g" \
     -i "$RUNCOMMAND_CONFIG_FILE" || return
 }
@@ -385,6 +386,7 @@ function set_runcommand_option() {
 function set_retroarch_option() {
   local -r _option=$1
   local -r _value=$2
+  [[ ! -f $RETROARCH_CONFIG_FILE ]] && return
   sed -e "s/^.*$_option.*$/$_option = \"$_value\"/g" \
     -i "$RETROARCH_CONFIG_FILE" || return
 }
@@ -417,6 +419,7 @@ function write_joypad_remap() {
 function set_rpiconfig_option() {
   local -r _option=$1
   local -r _value=$2
+  [[ ! -f /boot/config.txt ]] && return
   sudo bash <<EOF
 if grep -q "^$_option=" /boot/config.txt 2>/dev/null; then
   sed -e "/^$_option=/ c\\$_option=$_value" -i /boot/config.txt || exit
@@ -429,6 +432,7 @@ EOF
 function set_rpiconfig_dtoverlay() {
   local -r _dtoverlay=$1
   local _params=$2
+  [[ ! -f /boot/config.txt ]] && return
   [[ -n $_params ]] && _params=":$_params"
   sudo bash <<EOF
 if grep -E -q '^dtoverlay=$_dtoverlay([,:]|\$)' /boot/config.txt 2>/dev/null; then
@@ -453,6 +457,7 @@ EOF
 }
 
 function configure_kcmdline() {
+  [[ ! -f /boot/cmdline.txt ]] && return
   sudo bash <<"EOF"
 function _set_option() {
   local -r _option=$1
