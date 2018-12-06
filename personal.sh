@@ -399,6 +399,11 @@ EOF
 # Post-setup hook
 
 function my_retropie_setup_hook() {
+  # disable overscan and overscan scale
+  show_message "Disabling overscan and overscan scale ..."
+  set_rpiconfig_option "disable_overscan" "1" || return
+  set_rpiconfig_option "overscan_scale" "0" || return
+
   # disable video threaded option in retroarch
   show_message "Disabling video threaded option in retroarch ..."
   set_retroarch_option "video_threaded" "false" || return
