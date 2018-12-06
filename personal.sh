@@ -395,6 +395,15 @@ read -r -d "" ES_INPUT <<"EOF"
 </inputList>
 EOF
 
+# emulationstation settings
+read -r -d "" ES_SETTINGS <<"EOF"
+<?xml version="1.0"?>
+<bool name="VideoOmxPlayer" value="true" />
+<string name="CollectionSystemsAuto" value="favorites" />
+<string name="PowerSaverMode" value="default" />
+<string name="TransitionStyle" value="instant" />
+EOF
+
 #===============================================================================
 # Post-setup hook
 
