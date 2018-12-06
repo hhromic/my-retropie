@@ -50,6 +50,9 @@ AUTOCONFIG_DIR=$CONFIGS_BASE_DIR/all/retroarch/autoconfig
 # emulationstation input config file
 ES_INPUT_FILE=$CONFIGS_BASE_DIR/all/emulationstation/es_input.cfg
 
+# emulationstation settings file
+ES_SETTINGS_FILE=$CONFIGS_BASE_DIR/all/emulationstation/es_settings.cfg
+
 #===============================================================================
 # Raspbian Configuration
 
@@ -106,6 +109,9 @@ declare -A JOYPAD_REMAP
 
 # emulationstation input config
 declare ES_INPUT
+
+# emulationstation settings
+declare ES_SETTINGS
 
 #===============================================================================
 # Helpers
@@ -226,6 +232,7 @@ function show_variables() {
   _show_var "SHADERS_PRESETS_DIR   " "$SHADERS_PRESETS_DIR" &&
   _show_var "AUTOCONFIG_DIR        " "$AUTOCONFIG_DIR" &&
   _show_var "ES_INPUT_FILE         " "$ES_INPUT_FILE" &&
+  _show_var "ES_SETTINGS_FILE      " "$ES_SETTINGS_FILE" &&
 
   show_message "Raspbian configuration" && new_line &&
   _show_var "DEVICE_HOSTNAME       " "$DEVICE_HOSTNAME" &&
@@ -246,7 +253,8 @@ function show_variables() {
   _show_arr "JOYPAD_AUTOCONFIG     " "JOYPAD_AUTOCONFIG" &&
   _show_arr "JOYPAD_INDEX          " "JOYPAD_INDEX" &&
   _show_arr "JOYPAD_REMAP          " "JOYPAD_REMAP" &&
-  _show_var "ES_INPUT              " $'\n'"$ES_INPUT"
+  _show_var "ES_INPUT              " $'\n'"$ES_INPUT" &&
+  _show_var "ES_SETTINGS           " $'\n'"$ES_SETTINGS"
 }
 
 function have_bluetooth() {
@@ -726,6 +734,12 @@ function action_configure_es() {
   show_message "Configuring controller input ..."
   if [[ -n $ES_INPUT ]]; then
     cat > "$ES_INPUT_FILE" <<<"$ES_INPUT" || return
+  fi
+
+  # configure settings
+  show_message "Configuring settings ..."
+  if [[ -n $ES_SETTINGS ]]; then
+    cat > "$ES_SETTINGS_FILE" <<<"$ES_SETTINGS" || return
   fi
 }
 
