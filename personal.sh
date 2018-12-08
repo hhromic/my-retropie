@@ -99,6 +99,7 @@ PACKAGES_SOURCE=(
   lr-mupen64plus
   lr-nestopia
   lr-pcsx-rearmed
+  lr-scummvm
   lr-snes9x
 )
 
@@ -114,6 +115,7 @@ EMULATOR=(
   [n64]=lr-mupen64plus
   [nes]=lr-nestopia
   [psx]=lr-pcsx-rearmed
+  [scummvm]=lr-scummvm
   [segacd]=lr-genesis-plus-gx
   [sg-1000]=lr-genesis-plus-gx
   [snes]=lr-snes9x
@@ -126,6 +128,7 @@ VIDEO_MODE=(
   [lr-mupen64plus]=CEA-4
   [lr-nestopia]=CEA-4
   [lr-pcsx-rearmed]=CEA-4
+  [lr-scummvm]=CEA-4
   [lr-snes9x]=CEA-4
 )
 
@@ -136,6 +139,7 @@ SHADER_PRESET_TYPE=(
   [Nestopia]=CRT
   [Mupen64Plus GLES2]=CRT
   [PCSX-ReARMed]=CRT
+  [scummvm]=CRT
   [Snes9x]=CRT
 )
 
