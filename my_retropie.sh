@@ -23,6 +23,9 @@ CONFIGS_BASE_DIR=/opt/retropie/configs
 # system base directory (args: system)
 SYSTEM_BASE_DIR=$CONFIGS_BASE_DIR/%s
 
+# retropie autoconf file
+AUTOCONF_FILE=$CONFIGS_BASE_DIR/all/autoconf.cfg
+
 # runcommand config file
 RUNCOMMAND_CONFIG_FILE=$CONFIGS_BASE_DIR/all/runcommand.cfg
 
@@ -224,6 +227,7 @@ function show_variables() {
   _show_var "RETROPIE_BASE_DIR     " "$RETROPIE_BASE_DIR" &&
   _show_var "CONFIGS_BASE_DIR      " "$CONFIGS_BASE_DIR" &&
   _show_var "SYSTEM_BASE_DIR       " "$SYSTEM_BASE_DIR" &&
+  _show_var "AUTOCONF_FILE         " "$AUTOCONF_FILE" &&
   _show_var "RUNCOMMAND_CONFIG_FILE" "$RUNCOMMAND_CONFIG_FILE" &&
   _show_var "VIDEO_MODES_FILE      " "$VIDEO_MODES_FILE" &&
   _show_var "RETROARCH_CONFIG_FILE " "$RETROARCH_CONFIG_FILE" &&
@@ -381,6 +385,14 @@ umask 0077
 mkdir -p "${_filename%/*}" || exit
 printf "$_data"$'\\n' > "$_filename" || exit
 EOF
+}
+
+function set_autoconf_option() {
+  local -r _option=$1
+  local -r _value=$2
+  [[ ! -f $AUTOCONF_FILE ]] && return
+  sed -e "s/^.*$_option.*$/$_option = \"$_value\"/g" \
+    -i "$AUTOCONF_FILE" || return
 }
 
 function set_runcommand_option() {
