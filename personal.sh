@@ -377,8 +377,8 @@ read -r -d "" ES_INPUT <<"EOF"
     <input name="select" type="button" id="8" value="1"/>
     <input name="left" type="button" id="15" value="1"/>
     <input name="up" type="button" id="13" value="1"/>
-    <input name="a" type="button" id="1" value="1"/>
-    <input name="b" type="button" id="0" value="1"/>
+    <input name="a" type="button" id="0" value="1"/>
+    <input name="b" type="button" id="1" value="1"/>
     <input name="x" type="button" id="2" value="1"/>
     <input name="y" type="button" id="3" value="1"/>
   </inputConfig>
@@ -391,8 +391,8 @@ read -r -d "" ES_INPUT <<"EOF"
     <input name="select" type="button" id="10" value="1"/>
     <input name="left" type="hat" id="0" value="8"/>
     <input name="up" type="hat" id="0" value="1"/>
-    <input name="a" type="button" id="0" value="1"/>
-    <input name="b" type="button" id="1" value="1"/>
+    <input name="a" type="button" id="1" value="1"/>
+    <input name="b" type="button" id="0" value="1"/>
     <input name="x" type="button" id="3" value="1"/>
     <input name="y" type="button" id="4" value="1"/>
   </inputConfig>
@@ -416,6 +416,14 @@ function my_retropie_setup_hook() {
   show_message "Disabling overscan and overscan scale ..."
   set_rpiconfig_option "disable_overscan" "1" || return
   set_rpiconfig_option "overscan_scale" "0" || return
+
+  # enable emulationstation A/B buttons swap in autoconf
+  show_message "Enabling emulationstation A/B buttons swap in autoconf ..."
+  set_autoconf_option "es_swap_a_b" "1" || return
+
+  # enable ok/cancel buttons swap in retroarch
+  show_message "Enabling ok/cancel buttons swap in retroarch ..."
+  set_retroarch_option "menu_swap_ok_cancel_buttons" "true" || return
 
   # disable video threaded option in retroarch
   show_message "Disabling video threaded option in retroarch ..."
