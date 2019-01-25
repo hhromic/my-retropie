@@ -38,6 +38,9 @@ VIDEO_MODES_FILE=$CONFIGS_BASE_DIR/all/videomodes.cfg
 # retroarch config file
 RETROARCH_CONFIG_FILE=$CONFIGS_BASE_DIR/all/retroarch.cfg
 
+# retroarch core options file
+RETROARCH_CORE_OPTIONS_FILE=$CONFIGS_BASE_DIR/all/retroarch-core-options.cfg
+
 # shaders base directory
 SHADERS_BASE_DIR=$CONFIGS_BASE_DIR/all/retroarch/shaders
 
@@ -221,44 +224,45 @@ function show_variables() {
   }
 
   show_message "Files and directories" && new_line &&
-  _show_var "BLUEZ_STORAGE_DIR     " "$BLUEZ_STORAGE_DIR" &&
-  _show_var "BLUEZ_INFO_FILE       " "$BLUEZ_INFO_FILE" &&
-  _show_var "BLUEZ_CACHE_FILE      " "$BLUEZ_CACHE_FILE" &&
-  _show_var "RETROPIE_BASE_DIR     " "$RETROPIE_BASE_DIR" &&
-  _show_var "CONFIGS_BASE_DIR      " "$CONFIGS_BASE_DIR" &&
-  _show_var "SYSTEM_BASE_DIR       " "$SYSTEM_BASE_DIR" &&
-  _show_var "AUTOCONF_FILE         " "$AUTOCONF_FILE" &&
-  _show_var "RUNCOMMAND_CONFIG_FILE" "$RUNCOMMAND_CONFIG_FILE" &&
-  _show_var "VIDEO_MODES_FILE      " "$VIDEO_MODES_FILE" &&
-  _show_var "RETROARCH_CONFIG_FILE " "$RETROARCH_CONFIG_FILE" &&
-  _show_var "SHADERS_BASE_DIR      " "$SHADERS_BASE_DIR" &&
-  _show_var "SHADERS_DIR           " "$SHADERS_DIR" &&
-  _show_var "SHADERS_PRESETS_DIR   " "$SHADERS_PRESETS_DIR" &&
-  _show_var "AUTOCONFIG_DIR        " "$AUTOCONFIG_DIR" &&
-  _show_var "ES_INPUT_FILE         " "$ES_INPUT_FILE" &&
-  _show_var "ES_SETTINGS_FILE      " "$ES_SETTINGS_FILE" &&
+  _show_var "BLUEZ_STORAGE_DIR          " "$BLUEZ_STORAGE_DIR" &&
+  _show_var "BLUEZ_INFO_FILE            " "$BLUEZ_INFO_FILE" &&
+  _show_var "BLUEZ_CACHE_FILE           " "$BLUEZ_CACHE_FILE" &&
+  _show_var "RETROPIE_BASE_DIR          " "$RETROPIE_BASE_DIR" &&
+  _show_var "CONFIGS_BASE_DIR           " "$CONFIGS_BASE_DIR" &&
+  _show_var "SYSTEM_BASE_DIR            " "$SYSTEM_BASE_DIR" &&
+  _show_var "AUTOCONF_FILE              " "$AUTOCONF_FILE" &&
+  _show_var "RUNCOMMAND_CONFIG_FILE     " "$RUNCOMMAND_CONFIG_FILE" &&
+  _show_var "VIDEO_MODES_FILE           " "$VIDEO_MODES_FILE" &&
+  _show_var "RETROARCH_CONFIG_FILE      " "$RETROARCH_CONFIG_FILE" &&
+  _show_var "RETROARCH_CORE_OPTIONS_FILE" "$RETROARCH_CORE_OPTIONS_FILE" &&
+  _show_var "SHADERS_BASE_DIR           " "$SHADERS_BASE_DIR" &&
+  _show_var "SHADERS_DIR                " "$SHADERS_DIR" &&
+  _show_var "SHADERS_PRESETS_DIR        " "$SHADERS_PRESETS_DIR" &&
+  _show_var "AUTOCONFIG_DIR             " "$AUTOCONFIG_DIR" &&
+  _show_var "ES_INPUT_FILE              " "$ES_INPUT_FILE" &&
+  _show_var "ES_SETTINGS_FILE           " "$ES_SETTINGS_FILE" &&
 
   show_message "Raspbian configuration" && new_line &&
-  _show_var "DEVICE_HOSTNAME       " "$DEVICE_HOSTNAME" &&
-  _show_var "DEVICE_TIMEZONE       " "$DEVICE_TIMEZONE" &&
-  _show_arr "APT_PACKAGES          " "APT_PACKAGES" &&
-  _show_arr "BLUETOOTH_DEVICE_INFO " "BLUETOOTH_DEVICE_INFO" &&
-  _show_arr "BLUETOOTH_DEVICE_CACHE" "BLUETOOTH_DEVICE_CACHE" &&
-  _show_arr "DTOVERLAY             " "DTOVERLAY" &&
+  _show_var "DEVICE_HOSTNAME            " "$DEVICE_HOSTNAME" &&
+  _show_var "DEVICE_TIMEZONE            " "$DEVICE_TIMEZONE" &&
+  _show_arr "APT_PACKAGES               " "APT_PACKAGES" &&
+  _show_arr "BLUETOOTH_DEVICE_INFO      " "BLUETOOTH_DEVICE_INFO" &&
+  _show_arr "BLUETOOTH_DEVICE_CACHE     " "BLUETOOTH_DEVICE_CACHE" &&
+  _show_arr "DTOVERLAY                  " "DTOVERLAY" &&
 
   show_message "RetroPie configuration" && new_line &&
-  _show_var "RETROPIE_REPOSITORY   " "$RETROPIE_REPOSITORY" &&
-  _show_var "PACKAGES_BINARY       " "${PACKAGES_BINARY[@]}" &&
-  _show_var "PACKAGES_SOURCE       " "${PACKAGES_SOURCE[@]}" &&
-  _show_arr "EMULATOR              " "EMULATOR" &&
-  _show_arr "VIDEO_MODE            " "VIDEO_MODE" &&
-  _show_arr "SHADER_PRESET_TYPE    " "SHADER_PRESET_TYPE" &&
-  _show_arr "SHADER_PRESET         " "SHADER_PRESET" &&
-  _show_arr "JOYPAD_AUTOCONFIG     " "JOYPAD_AUTOCONFIG" &&
-  _show_arr "JOYPAD_INDEX          " "JOYPAD_INDEX" &&
-  _show_arr "JOYPAD_REMAP          " "JOYPAD_REMAP" &&
-  _show_var "ES_INPUT              " $'\n'"$ES_INPUT" &&
-  _show_var "ES_SETTINGS           " $'\n'"$ES_SETTINGS"
+  _show_var "RETROPIE_REPOSITORY        " "$RETROPIE_REPOSITORY" &&
+  _show_var "PACKAGES_BINARY            " "${PACKAGES_BINARY[@]}" &&
+  _show_var "PACKAGES_SOURCE            " "${PACKAGES_SOURCE[@]}" &&
+  _show_arr "EMULATOR                   " "EMULATOR" &&
+  _show_arr "VIDEO_MODE                 " "VIDEO_MODE" &&
+  _show_arr "SHADER_PRESET_TYPE         " "SHADER_PRESET_TYPE" &&
+  _show_arr "SHADER_PRESET              " "SHADER_PRESET" &&
+  _show_arr "JOYPAD_AUTOCONFIG          " "JOYPAD_AUTOCONFIG" &&
+  _show_arr "JOYPAD_INDEX               " "JOYPAD_INDEX" &&
+  _show_arr "JOYPAD_REMAP               " "JOYPAD_REMAP" &&
+  _show_var "ES_INPUT                   " $'\n'"$ES_INPUT" &&
+  _show_var "ES_SETTINGS                " $'\n'"$ES_SETTINGS"
 }
 
 function have_bluetooth() {
@@ -387,28 +391,28 @@ printf "$_data"$'\\n' > "$_filename" || exit
 EOF
 }
 
+function set_cfgfile_option() {
+  local -r _file=$1
+  local -r _option=$2
+  local -r _value=$3
+  [[ ! -f $_file ]] && return
+  sed -e "s/^.*$_option.*$/$_option = \"$_value\"/g" -i "$_file" || return
+}
+
 function set_autoconf_option() {
-  local -r _option=$1
-  local -r _value=$2
-  [[ ! -f $AUTOCONF_FILE ]] && return
-  sed -e "s/^.*$_option.*$/$_option = \"$_value\"/g" \
-    -i "$AUTOCONF_FILE" || return
+  set_cfgfile_option "$AUTOCONF_FILE" "$1" "$2"
 }
 
 function set_runcommand_option() {
-  local -r _option=$1
-  local -r _value=$2
-  [[ ! -f $RUNCOMMAND_CONFIG_FILE ]] && return
-  sed -e "s/^.*$_option.*$/$_option = \"$_value\"/g" \
-    -i "$RUNCOMMAND_CONFIG_FILE" || return
+  set_cfgfile_option "$RUNCOMMAND_CONFIG_FILE" "$1" "$2"
 }
 
 function set_retroarch_option() {
-  local -r _option=$1
-  local -r _value=$2
-  [[ ! -f $RETROARCH_CONFIG_FILE ]] && return
-  sed -e "s/^.*$_option.*$/$_option = \"$_value\"/g" \
-    -i "$RETROARCH_CONFIG_FILE" || return
+  set_cfgfile_option "$RETROARCH_CONFIG_FILE" "$1" "$2"
+}
+
+function set_retroarch_core_option() {
+  set_cfgfile_option "$RETROARCH_CORE_OPTIONS_FILE" "$1" "$2"
 }
 
 function write_shader_preset() {
