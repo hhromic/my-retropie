@@ -433,6 +433,10 @@ function my_retropie_setup_hook() {
   show_message "Setting threaded audio driver in retroarch ..."
   set_retroarch_option "audio_driver" "alsathread" || return
 
+  # set sound interpolation core option for lr-pcsx-rearmed
+  show_message "Setting sound interpolation core option for lr-pcsx-rearmed ..."
+  set_retroarch_core_option "pcsx_rearmed_spu_interpolation" "gaussian" || return
+
   # disable menu in runcommand
   show_message "Disabling menu in runcommand ..."
   set_runcommand_option "disable_menu" "1" || return
