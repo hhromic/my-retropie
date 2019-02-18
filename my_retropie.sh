@@ -530,7 +530,7 @@ function action_apt_setup() {
     show_message "Configuring bluez packages preference ..."
     _bluez_packages=(
       bluetooth bluez bluez-cups bluez-hcidump bluez-obexd bluez-test-scripts
-      bluez-test-tools libbluetooth-dev libbluetooth3 bluez-firmware
+      bluez-test-tools libbluetooth-dev libbluetooth3
     )
     set_apt_preference "bluez" "${_bluez_packages[*]}" "testing" "900"
   fi
