@@ -396,7 +396,8 @@ function set_cfgfile_option() {
   local -r _option=$2
   local -r _value=$3
   [[ ! -f $_file ]] && return
-  sed -e "s/^.*$_option.*$/$_option = \"$_value\"/g" -i "$_file" || return
+  sed -e "/^#\?\s*\(${_option//\//\\/}\s*=\s*\).*/{s//\1\"${_value//\//\\/}\"/;:a;n;ba;q}" \
+      -e "\$a${_option//\//\\/} = \"${_value//\//\\/}\"" -i "$_file" || return
 }
 
 function set_autoconf_option() {
