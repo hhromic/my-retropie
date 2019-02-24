@@ -429,9 +429,22 @@ function my_retropie_setup_hook() {
   show_message "Disabling video threaded option in retroarch ..."
   set_retroarch_option "video_threaded" "false" || return
 
-  # set threaded audio driver in retroarch
-  show_message "Setting threaded audio driver in retroarch ..."
+  # set driver options in retroarch
+  show_message "Setting driver options in retroarch ..."
   set_retroarch_option "audio_driver" "alsathread" || return
+  set_retroarch_option "record_driver" "null" || return
+  set_retroarch_option "midi_driver" "null" || return
+
+  # set menu options in retroarch
+  show_message "Setting menu options in retroarch ..."
+  set_retroarch_option "menu_linear_filter" "false" || return
+  set_retroarch_option "menu_show_configurations" "false" || return
+  set_retroarch_option "menu_show_help" "false" || return
+  set_retroarch_option "rgui_menu_color_theme" "25" || return
+
+  # set autosave interval in retroarch
+  show_message "Setting autosave interval in retroarch ..."
+  set_retroarch_option "autosave_interval" "60"
 
   # set sound interpolation core option for lr-pcsx-rearmed
   show_message "Setting sound interpolation core option for lr-pcsx-rearmed ..."
