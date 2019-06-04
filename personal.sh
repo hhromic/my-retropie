@@ -96,7 +96,7 @@ PACKAGES_SOURCE=(
   retroarch
   lr-genesis-plus-gx
   lr-mgba
-  lr-mupen64plus
+  lr-mupen64plus-next
   lr-nestopia
   lr-pcsx-rearmed
   lr-scummvm
@@ -112,7 +112,7 @@ EMULATOR=(
   [gbc]=lr-mgba
   [mastersystem]=lr-genesis-plus-gx
   [megadrive]=lr-genesis-plus-gx
-  [n64]=lr-mupen64plus
+  [n64]=lr-mupen64plus-next
   [nes]=lr-nestopia
   [psx]=lr-pcsx-rearmed
   [scummvm]=lr-scummvm
@@ -125,7 +125,7 @@ EMULATOR=(
 VIDEO_MODE=(
   [lr-genesis-plus-gx]=CEA-4
   [lr-mgba]=CEA-4
-  [lr-mupen64plus]=CEA-4
+  [lr-mupen64plus-next]=CEA-4
   [lr-nestopia]=CEA-4
   [lr-pcsx-rearmed]=CEA-4
   [lr-scummvm]=CEA-4
@@ -137,7 +137,7 @@ SHADER_PRESET_TYPE=(
   [mGBA]=LCD
   [Genesis Plus GX]=CRT
   [Nestopia]=CRT
-  [Mupen64Plus GLES2]=CRT
+  [Mupen64Plus-Next GLES2]=CRT
   [PCSX-ReARMed]=CRT
   [scummvm]=CRT
   [Snes9x]=CRT
