@@ -309,6 +309,27 @@ EOF
 
 # joypad remaps for systems/libretro core names
 JOYPAD_REMAP=(
+  [gb/mGBA]="$(cat <<"EOF"
+input_player1_btn_a = "9"
+input_player1_btn_b = "8"
+input_player1_btn_x = "1"
+input_player1_btn_y = "0"
+EOF
+)"
+  [gba/mGBA]="$(cat <<"EOF"
+input_player1_btn_a = "9"
+input_player1_btn_b = "8"
+input_player1_btn_x = "1"
+input_player1_btn_y = "0"
+EOF
+)"
+  [gbc/mGBA]="$(cat <<"EOF"
+input_player1_btn_a = "9"
+input_player1_btn_b = "8"
+input_player1_btn_x = "1"
+input_player1_btn_y = "0"
+EOF
+)"
   [mastersystem/Genesis Plus GX]="$(cat <<"EOF"
 input_player1_btn_b = "1"
 input_player1_btn_y = "0"
