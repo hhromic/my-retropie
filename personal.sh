@@ -450,6 +450,10 @@ function my_retropie_setup_hook() {
   show_message "Setting sound interpolation core option for lr-pcsx-rearmed ..."
   set_retroarch_core_option "pcsx_rearmed_spu_interpolation" "gaussian" || return
 
+  # set color correction core option for lr-mgba
+  show_message "Setting color correction core option for lr-mgba ..."
+  set_retroarch_core_option "mgba_color_correction" "Auto" || return
+
   # disable menu in runcommand
   show_message "Disabling menu in runcommand ..."
   set_runcommand_option "disable_menu" "1" || return
